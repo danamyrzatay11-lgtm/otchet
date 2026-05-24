@@ -47,10 +47,9 @@ document.addEventListener("DOMContentLoaded", () => {
         .filter(Boolean)
         .join("\n");
 
-      const waUrl = `https://wa.me/77054192399?text=${encodeURIComponent(text)}`;
-
-      // Открываем WhatsApp
-      window.open(waUrl, "_blank");
+      // TODO: привязать номер WhatsApp
+      // const waUrl = `https://wa.me/НОМЕР?text=${encodeURIComponent(text)}`;
+      // window.open(waUrl, "_blank");
 
       // Показываем успех, скрываем форму
       form.style.display = "none";
