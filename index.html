@@ -3,75 +3,151 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Мырзатай Дана — Руководитель проектов</title>
+  <title>Vibe 42 — Школа вайбкодинга</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
 
-  <header class="hero">
-    <h1>Мырзатай Дана</h1>
-    <p class="subtitle">Руководитель проектов</p>
-  </header>
+  <!-- Навигация -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <span class="logo">Vibe <span class="logo-accent">42</span></span>
+      <a href="#apply" class="btn btn-nav">Оставить заявку</a>
+    </div>
+  </nav>
 
-  <main class="container">
-
-    <section id="about">
-      <h2>Обо мне</h2>
-      <p>Руководитель проектов с опытом организации и координации команд, запуска новых инициатив и управления рабочими процессами. Умею эффективно выстраивать коммуникацию, контролировать выполнение задач и доводить проекты до результата.</p>
-      <p>Интересуюсь digital- и IT-направлением, развитием образовательных и креативных проектов. В работе ценю системный подход, ответственность, гибкость и умение быстро адаптироваться к новым задачам.</p>
-      <p>Стремлюсь создавать проекты, которые приносят реальную пользу, объединяют людей и помогают развивать современные технологии и идеи.</p>
-    </section>
-
-    <section id="skills">
-      <h2>Навыки</h2>
-      <ul class="skills-list">
-        <li>Управление проектами</li>
-        <li>Координация команд</li>
-        <li>Организация рабочих процессов</li>
-        <li>Коммуникация и работа с партнёрами</li>
-        <li>Контент и медиакоммуникации</li>
-        <li>Работа с digital- и IT-проектами</li>
-        <li>Стратегическое планирование</li>
-        <li>Решение организационных задач</li>
-        <li>Адаптивность и многозадачность</li>
-        <li>Публичные коммуникации и PR</li>
-      </ul>
-    </section>
-
-    <section id="photos" class="photos-section">
-      <div class="photos-grid">
-        <img src="photo-2.jpg" alt="Мырзатай Дана" class="photo">
-        <img src="photo-1.jpg" alt="Мырзатай Дана" class="photo">
+  <!-- Герой -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-badge">Школа вайбкодинга</div>
+      <h1>Создавай продукты<br>с помощью ИИ</h1>
+      <p class="hero-sub">Научись строить реальные проекты без глубоких знаний программирования — используя AI-инструменты нового поколения</p>
+      <a href="#apply" class="btn btn-hero">Оставить заявку</a>
+      <div class="hero-stats">
+        <div class="stat">
+          <span class="stat-num">2</span>
+          <span class="stat-label">месяца обучения</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-num">Онлайн</span>
+          <span class="stat-label">формат</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-num">0</span>
+          <span class="stat-label">опыта в коде</span>
+        </div>
       </div>
-    </section>
+    </div>
+  </section>
 
-    <section id="contacts">
-      <h2>Контакты</h2>
-      <ul class="contacts-list">
-        <li>
-          <span class="contact-label">Email</span>
-          <a href="mailto:danamyrzatay11@gmail.com">
-            <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m2 7 10 7 10-7"/></svg>
-            danamyrzatay11@gmail.com
-          </a>
-        </li>
-        <li>
-          <span class="contact-label">Threads</span>
-          <a href="https://www.threads.net/@dana_myrzatay" target="_blank" rel="noopener">
-            <svg class="icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-4 8"/></svg>
-            dana_myrzatay
-          </a>
-        </li>
-      </ul>
-    </section>
+  <!-- Для кого -->
+  <section class="section" id="for-whom">
+    <div class="container">
+      <h2 class="section-title">Для кого этот курс</h2>
+      <div class="cards">
+        <div class="card">
+          <div class="card-icon">🚀</div>
+          <h3>Предприниматели</h3>
+          <p>Хотите быстро тестировать идеи и запускать MVP без команды разработчиков</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">💼</div>
+          <h3>Руководители</h3>
+          <p>Хотите автоматизировать процессы, понимать технологии и говорить с командой на одном языке</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🎨</div>
+          <h3>Дизайнеры</h3>
+          <p>Хотите воплощать идеи самостоятельно — без зависимости от разработчиков</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">✨</div>
+          <h3>Все желающие</h3>
+          <p>Кто хочет создавать цифровые продукты с нуля, используя современный ИИ</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
-  </main>
+  <!-- Программа -->
+  <section class="section section-gray" id="program">
+    <div class="container">
+      <h2 class="section-title">Программа обучения</h2>
+      <div class="modules">
+        <div class="module">
+          <span class="module-num">01</span>
+          <div class="module-body">
+            <h3>Введение в вайбкодинг</h3>
+            <p>Что такое вайбкодинг, как работает подход, первое знакомство с AI-инструментами</p>
+          </div>
+        </div>
+        <div class="module">
+          <span class="module-num">02</span>
+          <div class="module-body">
+            <h3>AI-инструменты</h3>
+            <p>Работа с Claude, Cursor, v0 и другими ассистентами. Как правильно ставить задачи</p>
+          </div>
+        </div>
+        <div class="module">
+          <span class="module-num">03</span>
+          <div class="module-body">
+            <h3>Первый продукт</h3>
+            <p>Проектируем и собираем реальный проект — от идеи до рабочего прототипа</p>
+          </div>
+        </div>
+        <div class="module">
+          <span class="module-num">04</span>
+          <div class="module-body">
+            <h3>Деплой и запуск</h3>
+            <p>Публикуем проект в интернет, настраиваем домен, представляем пользователям</p>
+          </div>
+        </div>
+        <div class="module">
+          <span class="module-num">05</span>
+          <div class="module-body">
+            <h3>Финальный проект</h3>
+            <p>Самостоятельный проект в портфолио с обратной связью от преподавателя</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 
-  <footer>
-    <p>© 2026 Мырзатай Дана</p>
+  <!-- Форма заявки -->
+  <section class="section" id="apply">
+    <div class="container container-narrow">
+      <h2 class="section-title">Записаться на курс</h2>
+      <p class="section-sub">Оставьте заявку — свяжемся в течение 24 часов и ответим на все вопросы</p>
+      <form class="form" action="https://formspree.io/f/ВАША_ФОРМА" method="POST">
+        <div class="form-row">
+          <input type="text" name="name" placeholder="Ваше имя" required>
+          <input type="tel" name="phone" placeholder="Номер телефона" required>
+        </div>
+        <input type="email" name="email" placeholder="Email" required>
+        <textarea name="message" placeholder="Вопрос или комментарий (необязательно)" rows="3"></textarea>
+        <button type="submit" class="btn btn-form">Отправить заявку</button>
+        <p class="form-note">Нажимая кнопку, вы соглашаетесь на обработку персональных данных</p>
+      </form>
+    </div>
+  </section>
+
+  <!-- Футер -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-inner">
+        <span class="logo">Vibe <span class="logo-accent">42</span></span>
+        <p class="footer-copy">Школа вайбкодинга · Мырзатай Дана</p>
+        <div class="footer-links">
+          <a href="mailto:danamyrzatay11@gmail.com">danamyrzatay11@gmail.com</a>
+          <a href="https://www.threads.net/@dana_myrzatay" target="_blank" rel="noopener">Threads</a>
+        </div>
+      </div>
+    </div>
   </footer>
 
   <script src="script.js"></script>
