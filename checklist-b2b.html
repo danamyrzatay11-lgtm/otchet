@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Чек-лист воркшопа по вайб-кодингу (B2B)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Golos+Text:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #F7F6F2;
+    --surface: #FFFFFF;
+    --surface2: #F0EEE9;
+    --border: rgba(0,0,0,0.1);
+    --border2: rgba(0,0,0,0.06);
+    --text: #1A1917;
+    --text2: #6B6860;
+    --text3: #A09E99;
+    --accent: #1D9E75;
+    --accent-bg: #E1F5EE;
+    --accent-text: #0F6E56;
+    --red-bg: #FCEBEB;
+    --red-text: #A32D2D;
+    --amber: #EF9F27;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #141412;
+      --surface: #1E1D1B;
+      --surface2: #272624;
+      --border: rgba(255,255,255,0.1);
+      --border2: rgba(255,255,255,0.06);
+      --text: #F0EEE9;
+      --text2: #9E9C97;
+      --text3: #6B6860;
+      --accent: #5DCAA5;
+      --accent-bg: #04342C;
+      --accent-text: #9FE1CB;
+      --red-bg: #501313;
+      --red-text: #F09595;
+    }
+  }
+
+  body {
+    font-family: 'Golos Text', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  .page-header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 24px 24px 20px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+
+  .header-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 14px;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .logo {
+    width: 36px;
+    height: 36px;
+    background: var(--text);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .logo svg { display: block; }
+
+  .brand-text h1 {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text);
+    line-height: 1.2;
+  }
+
+  .brand-text p {
+    font-size: 12px;
+    color: var(--text2);
+    margin-top: 1px;
+  }
+
+  .stats {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+    flex-shrink: 0;
+  }
+
+  .stat {
+    text-align: right;
+  }
+
+  .stat-num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--text);
+    line-height: 1;
+  }
+
+  .stat-num span {
+    font-size: 13px;
+    color: var(--text3);
+  }
+
+  .stat-label {
+    font-size: 11px;
+    color: var(--text3);
+    margin-top: 2px;
+  }
+
+  .progress-track {
+    height: 4px;
+    background: var(--border2);
+    border-radius: 99px;
+    overflow: hidden;
+  }
+
+  .progress-fill {
+    height: 100%;
+    background: var(--accent);
+    border-radius: 99px;
+    transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    width: 0%;
+  }
+
+  .main {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 20px 16px 60px;
+  }
+
+  .section {
+    background: var(--surface);
+    border: 1px solid var(--border2);
+    border-radius: 12px;
+    margin-bottom: 10px;
+    overflow: hidden;
+    transition: border-color 0.2s;
+  }
+
+  .section:hover { border-color: var(--border); }
+
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 16px;
+    cursor: pointer;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .section-icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: var(--surface2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-size: 16px;
+  }
+
+  .section-title {
+    flex: 1;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text);
+  }
+
+  .section-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text3);
+    background: var(--surface2);
+    padding: 3px 8px;
+    border-radius: 99px;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .section-badge.done {
+    background: var(--accent-bg);
+    color: var(--accent-text);
+  }
+
+  .chevron {
+    width: 16px;
+    height: 16px;
+    color: var(--text3);
+    transition: transform 0.25s;
+    flex-shrink: 0;
+  }
+
+  .chevron.open { transform: rotate(180deg); }
+
+  .section-body {
+    display: none;
+    border-top: 1px solid var(--border2);
+  }
+
+  .section-body.open { display: block; }
+
+  .item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 10px 16px;
+    cursor: pointer;
+    transition: background 0.15s;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  .item:not(:last-child) { border-bottom: 1px solid var(--border2); }
+  .item:hover { background: var(--surface2); }
+  .item:active { background: var(--border2); }
+
+  .cb {
+    width: 18px;
+    height: 18px;
+    border: 1.5px solid var(--border);
+    border-radius: 5px;
+    flex-shrink: 0;
+    margin-top: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.15s, border-color 0.15s;
+    background: var(--surface);
+  }
+
+  .cb.checked {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .cb.checked::after {
+    content: '';
+    display: block;
+    width: 4px;
+    height: 8px;
+    border: 2px solid white;
+    border-top: none;
+    border-left: none;
+    transform: rotate(45deg) translateY(-1px);
+  }
+
+  .item-text {
+    flex: 1;
+    font-size: 13px;
+    color: var(--text);
+    line-height: 1.55;
+    transition: color 0.15s;
+  }
+
+  .item-text.done {
+    text-decoration: line-through;
+    color: var(--text3);
+  }
+
+  .tag {
+    display: inline-block;
+    font-size: 10px;
+    font-weight: 500;
+    padding: 2px 7px;
+    border-radius: 99px;
+    margin-left: 6px;
+    vertical-align: middle;
+    white-space: nowrap;
+  }
+
+  .tag-must { background: var(--red-bg); color: var(--red-text); }
+  .tag-tip { background: var(--accent-bg); color: var(--accent-text); }
+
+  .footer {
+    text-align: center;
+    padding: 12px 0 0;
+  }
+
+  .reset-btn {
+    font-family: 'Golos Text', sans-serif;
+    font-size: 13px;
+    color: var(--text3);
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 8px 18px;
+    cursor: pointer;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+  }
+
+  .reset-btn:hover {
+    color: var(--text2);
+    border-color: var(--border);
+    background: var(--surface2);
+  }
+
+  .confetti-wrap {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    pointer-events: none;
+    z-index: 999;
+    overflow: hidden;
+    height: 100vh;
+  }
+
+  @keyframes fall {
+    0% { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+    100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+  }
+
+  .confetti-piece {
+    position: absolute;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    animation: fall linear forwards;
+  }
+
+  @media (max-width: 480px) {
+    .page-header { padding: 16px 16px 14px; }
+    .stats { gap: 12px; }
+    .stat-num { font-size: 17px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="header-top">
+    <div class="brand">
+      <div class="logo">
+        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+          <path d="M3 5h14M3 10h9M3 15h11" stroke="white" stroke-width="1.8" stroke-linecap="round"/>
+          <circle cx="16" cy="10" r="3" fill="#5DCAA5"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>Воркшоп по вайб-кодингу — B2B</h1>
+        <p>Чек-лист корпоративного мероприятия</p>
+      </div>
+    </div>
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-num" id="stat-done">0<span>/0</span></div>
+        <div class="stat-label">выполнено</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="stat-pct">0<span>%</span></div>
+        <div class="stat-label">готово</div>
+      </div>
+    </div>
+  </div>
+  <div class="progress-track">
+    <div class="progress-fill" id="prog"></div>
+  </div>
+</div>
+
+<div class="main" id="main"></div>
+<div class="confetti-wrap" id="confetti"></div>
+
+<script>
+const SECTIONS = [
+  { icon: "📋", title: "Договор и оплата", items: [
+    { t: "Выслать коммерческое предложение (КП) клиенту", must: true },
+    { t: "Согласовать объём, дату, формат и стоимость", must: true },
+    { t: "Получить реквизиты компании для документов", must: true },
+    { t: "Подписать договор оказания услуг", must: true },
+    { t: "Выставить счёт (инвойс)", must: true },
+    { t: "Получить оплату или предоплату", must: true },
+    { t: "Уточнить порядок закрывающих документов (акт выполненных работ)", must: true },
+  ]},
+  { icon: "🤝", title: "Координация с клиентом", items: [
+    { t: "Назначить контактное лицо со стороны клиента (HR или тим-лид)", must: true },
+    { t: "Создать рабочий чат с контактным лицом", must: true },
+    { t: "Уточнить состав и количество участников", must: true },
+  ]},
+  { icon: "👥", title: "Список участников", items: [
+    { t: "Получить финальный список участников от HR / контактного лица", must: true },
+    { t: "Зафиксировать количество — не позднее чем за 3 дня до события", must: true },
+    { t: "Уточнить имена для бейджей или приветствия", tip: true },
+    { t: "Назначить ответственного за регистрацию на входе", must: true },
+    { t: "Предусмотреть действие при незарегистрированном участнике" },
+  ]},
+  { icon: "📍", title: "Организация места", items: [
+    { t: "Уточнить формат: у клиента (offsite) или у вас (onsite)", must: true },
+    { t: "Если у клиента: согласовать доступ, пропускной режим и парковку для команды", must: true },
+    { t: "Если у вас: забронировать подходящее помещение", must: true },
+    { t: "Проверить вместимость — не менее N мест + зона тренера", must: true },
+    { t: "Уточнить время доступа: заезд до начала, выезд после", must: true },
+    { t: "Узнать правила места (шум, еда, парковка)" },
+    { t: "Проверить наличие туалета, гардероба" },
+    { t: "Подготовить навигацию — геолинк участникам", must: true },
+    { t: "Запасной вариант площадки на случай форс-мажора", tip: true },
+  ]},
+  { icon: "📶", title: "Интернет", items: [
+    { t: "Проверить Wi-Fi в помещении: скорость и стабильность", must: true },
+    { t: "Получить пароль от Wi-Fi и проверить на нескольких устройствах", must: true },
+    { t: "Подготовить мобильный роутер / резервную точку доступа", must: true },
+    { t: "Убедиться, что канала хватает на всех участников одновременно", must: true },
+    { t: "Проверить доступ к нужным сервисам (не заблокированы ли корпоративным файерволом)" },
+  ]},
+  { icon: "🔌", title: "Электричество и техника", items: [
+    { t: "Проверить количество и расположение розеток", must: true },
+    { t: "Взять удлинители и сетевые фильтры (минимум 2 шт.)", must: true },
+    { t: "Проверить проектор / экран / телевизор", must: true },
+    { t: "Взять запасные кабели HDMI, USB-C, переходники", must: true },
+    { t: "Зарядить все устройства команды накануне", must: true },
+    { t: "Взять запасные зарядные устройства и павербанки", tip: true },
+    { t: "Проверить работу аудио (колонка, микрофон при нужде)" },
+  ]},
+  { icon: "✉️", title: "Информирование участников", items: [
+    { t: "Согласовать с HR способ передачи информации участникам", must: true },
+    { t: "Отправить программу и инструкции за 3 дня до события", must: true },
+    { t: "Напомнить за 1 день: что взять с собой (ноутбук, ЗУ)", must: true },
+    { t: "Напомнить в день события за 2–3 часа", must: true },
+    { t: "Указать, что нужен ноутбук и зарядник", must: true },
+    { t: "Отправить геолинк / схему проезда и информацию о парковке", must: true },
+    { t: "Создать общий чат участников (Telegram / WhatsApp)", tip: true },
+  ]},
+  { icon: "🖥️", title: "Подготовка обучения", items: [
+    { t: "Подготовить рабочую среду для участников", must: true },
+    { t: "Прогнать программу по времени (с буфером 15–20 мин)", must: true },
+    { t: "Подготовить слайды / демо / примеры кода", must: true },
+    { t: "Проверить все ссылки и сервисы накануне", must: true },
+    { t: "Подготовить раздаточные материалы (PDF, Notion, ссылки)" },
+    { t: "Распределить роли в команде: кто ведёт, кто помогает", must: true },
+    { t: "Подготовить резервный план при технических проблемах", tip: true },
+  ]},
+  { icon: "☕", title: "Комфорт и перерывы", items: [
+    { t: "Организовать воду для участников", must: true },
+    { t: "Запланировать перерыв 10–15 мин в середине (3 часа = 1 брейк)", must: true },
+    { t: "Предупредить о кафе / столовой рядом при необходимости" },
+  ]},
+  { icon: "🚀", title: "День мероприятия: до начала", items: [
+    { t: "Приехать минимум за 40–60 минут до старта", must: true },
+    { t: "Пройти пропускной режим заранее, если нужно", must: true },
+    { t: "Расставить столы, стулья, проверить обзорность", must: true },
+    { t: "Подключить и протестировать проектор / экран", must: true },
+    { t: "Проверить Wi-Fi и розетки ещё раз", must: true },
+    { t: "Разложить раздатку, бейджи, ручки" },
+    { t: "Выставить регистрационный стол у входа", must: true },
+    { t: "Убедиться, что у всей команды есть роли и инструкции", must: true },
+  ]},
+  { icon: "🏁", title: "Во время и после мероприятия", items: [
+    { t: "Отмечать участников по списку на входе", must: true },
+    { t: "Фотографировать / снимать контент (с учётом NDA)" },
+    { t: "Отправить follow-up контактному лицу (ссылки, итоги)", must: true },
+    { t: "Подготовить и отправить итоговый отчёт клиенту", must: true },
+    { t: "Выставить закрывающие документы (акт выполненных работ)", must: true },
+    { t: "Провести разбор с командой — что улучшить", tip: true },
+  ]},
+];
+
+const KEY = 'vibe_b2b_cl_v1';
+let state = {};
+
+function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){} }
+function load() { try { const d = localStorage.getItem(KEY); if (d) state = JSON.parse(d); } catch(e){} }
+
+function totals() {
+  let total = 0, done = 0;
+  SECTIONS.forEach((s, si) => s.items.forEach((_, ii) => { total++; if (state[si+'-'+ii]) done++; }));
+  return { total, done };
+}
+
+function updateProgress() {
+  const { total, done } = totals();
+  const pct = total ? Math.round(done / total * 100) : 0;
+  document.getElementById('prog').style.width = pct + '%';
+  document.getElementById('stat-done').innerHTML = done + '<span>/' + total + '</span>';
+  document.getElementById('stat-pct').innerHTML = pct + '<span>%</span>';
+  SECTIONS.forEach((s, si) => {
+    let sdone = 0;
+    s.items.forEach((_, ii) => { if (state[si+'-'+ii]) sdone++; });
+    const badge = document.getElementById('badge-' + si);
+    if (badge) {
+      badge.textContent = sdone + '/' + s.items.length;
+      badge.className = 'section-badge' + (sdone === s.items.length ? ' done' : '');
+    }
+  });
+  if (done === total && total > 0) celebrate();
+}
+
+function celebrate() {
+  const wrap = document.getElementById('confetti');
+  wrap.innerHTML = '';
+  const colors = ['#1D9E75','#EF9F27','#7F77DD','#D85A30','#378ADD','#D4537E'];
+  for (let i = 0; i < 60; i++) {
+    const p = document.createElement('div');
+    p.className = 'confetti-piece';
+    p.style.cssText = `left:${Math.random()*100}%;background:${colors[i%colors.length]};animation-duration:${1.2+Math.random()*1.2}s;animation-delay:${Math.random()*0.6}s;border-radius:${Math.random()>0.5?'50%':'2px'}`;
+    wrap.appendChild(p);
+    setTimeout(() => p.remove(), 3000);
+  }
+}
+
+function toggle(si, ii) {
+  const k = si+'-'+ii;
+  state[k] = !state[k];
+  const cb = document.getElementById('cb-'+k);
+  const lbl = document.getElementById('lbl-'+k);
+  if (state[k]) { cb.classList.add('checked'); lbl.classList.add('done'); }
+  else { cb.classList.remove('checked'); lbl.classList.remove('done'); }
+  save();
+  updateProgress();
+}
+
+function toggleSection(si) {
+  const body = document.getElementById('body-'+si);
+  const chev = document.getElementById('chev-'+si);
+  const open = body.classList.toggle('open');
+  chev.classList.toggle('open', open);
+}
+
+function render() {
+  load();
+  const main = document.getElementById('main');
+  SECTIONS.forEach((s, si) => {
+    const sec = document.createElement('div');
+    sec.className = 'section';
+
+    sec.innerHTML = `<div class="section-header" onclick="toggleSection(${si})">
+      <div class="section-icon">${s.icon}</div>
+      <div class="section-title">${s.title}</div>
+      <span class="section-badge" id="badge-${si}">0/${s.items.length}</span>
+      <svg class="chevron" id="chev-${si}" viewBox="0 0 16 16" fill="none"><path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    </div>
+    <div class="section-body${si === 0 ? ' open' : ''}" id="body-${si}">
+      ${s.items.map((item, ii) => {
+        const k = si+'-'+ii;
+        const chk = !!state[k];
+        const tag = item.must ? '<span class="tag tag-must">обязательно</span>' : (item.tip ? '<span class="tag tag-tip">совет</span>' : '');
+        return `<div class="item" onclick="toggle(${si},${ii})">
+          <div class="cb${chk?' checked':''}" id="cb-${k}"></div>
+          <span class="item-text${chk?' done':''}" id="lbl-${k}">${item.t}${tag}</span>
+        </div>`;
+      }).join('')}
+    </div>`;
+
+    main.appendChild(sec);
+  });
+
+  if (document.getElementById('chev-0')) {
+    document.getElementById('chev-0').classList.add('open');
+  }
+
+  main.insertAdjacentHTML('beforeend', `<div class="footer"><button class="reset-btn" onclick="resetAll()">↺ Сбросить всё</button></div>`);
+  updateProgress();
+}
+
+function resetAll() {
+  if (!confirm('Сбросить все отметки?')) return;
+  state = {};
+  document.querySelectorAll('.cb').forEach(el => el.classList.remove('checked'));
+  document.querySelectorAll('.item-text').forEach(el => el.classList.remove('done'));
+  save();
+  updateProgress();
+}
+
+render();
+</script>
+</body>
+</html>
