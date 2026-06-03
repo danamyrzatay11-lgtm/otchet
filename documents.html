@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Документооборот</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #f1f5f9; }
+    ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 3px; }
+    .fade-in { animation: fadeIn 0.2s ease; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body class="bg-gray-50">
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useMemo, useRef } = React;
+
+// ─── Constants ────────────────────────────────────────────────────────────────
+
+const FOLDER_TREE = [
+  { id: 'contracts', label: 'Договоры', icon: '📁', children: [
+    { id: 'contracts-services', label: 'Оказание услуг', icon: '📂' },
+    { id: 'contracts-gph', label: 'ГПХ', icon: '📂' },
+    { id: 'contracts-partner', label: 'Партнёрские', icon: '📂' },
+    { id: 'contracts-other', label: 'Прочие', icon: '📂' },
+  ]},
+  { id: 'employees', label: 'Сотрудники', icon: '📁', children: [
+    { id: 'employees-labor', label: 'Трудовые договоры', icon: '📂' },
+    { id: 'employees-personal', label: 'Личные дела', icon: '📂' },
+    { id: 'employees-nda', label: 'NDA / Соглашения', icon: '📂' },
+  ]},
+  { id: 'partners', label: 'Партнёры', icon: '📁', children: [
+    { id: 'partners-suppliers', label: 'Поставщики', icon: '📂' },
+    { id: 'partners-clients', label: 'Клиенты', icon: '📂' },
+    { id: 'partners-agents', label: 'Агенты', icon: '📂' },
+  ]},
+];
+
+const CONTRACT_STATUSES = [
+  { id: 'initiation', label: 'Инициация', color: 'bg-yellow-100 text-yellow-800', dot: 'bg-yellow-400', step: 1 },
+  { id: 'review', label: 'Согласование', color: 'bg-blue-100 text-blue-800', dot: 'bg-blue-500', step: 2 },
+  { id: 'signing', label: 'Подписание', color: 'bg-purple-100 text-purple-800', dot: 'bg-purple-500', step: 3 },
+  { id: 'active', label: 'Действует', color: 'bg-green-100 text-green-800', dot: 'bg-green-500', step: 4 },
+  { id: 'closing', label: 'Акт/Закрытие', color: 'bg-orange-100 text-orange-800', dot: 'bg-orange-400', step: 5 },
+  { id: 'done', label: 'Завершён', color: 'bg-emerald-100 text-emerald-800', dot: 'bg-emerald-500', step: 6 },
+  { id: 'terminated', label: 'Расторгнут', color: 'bg-red-100 text-red-800', dot: 'bg-red-500', step: null },
+  { id: 'overdue', label: 'Просрочен', color: 'bg-amber-100 text-amber-800', dot: 'bg-amber-500', step: null },
+];
+
+const EMPLOYEE_STATUSES = [
+  { id: 'draft', label: 'Черновик', color: 'bg-gray-100 text-gray-700', dot: 'bg-gray-400' },
+  { id: 'active', label: 'Действует', color: 'bg-green-100 text-green-800', dot: 'bg-green-500' },
+  { id: 'renewal', label: 'На продлении', color: 'bg-blue-100 text-blue-800', dot: 'bg-blue-500' },
+  { id: 'archive', label: 'Архив', color: 'bg-gray-100 text-gray-500', dot: 'bg-gray-400' },
+];
+
+const DOC_TYPES = ['Договор услуг', 'ГПХ', 'Трудовой', 'NDA', 'Акт', 'Доп. соглашение', 'Личное дело', 'Прочее'];
+
+const CONTRACT_FOLDER_IDS = ['contracts-services', 'contracts-gph', 'contracts-partner', 'contracts-other'];
+const EMPLOYEE_FOLDER_IDS = ['employees-labor', 'employees-personal', 'employees-nda'];
+
+const SAMPLE_DOCS = [
+  { id: '1', folderId: 'contracts-services', name: 'Договор на разработку сайта', type: 'Договор услуг', counterparty: 'ТОО "Веб Студия"', amount: 450000, startDate: '2026-01-15', endDate: '2026-06-15', fileName: 'contract_web.pdf', comment: 'Первый этап — дизайн', status: 'active' },
+  { id: '2', folderId: 'contracts-gph', name: 'ГПХ с дизайнером', type: 'ГПХ', counterparty: 'Сейткали А.Б.', amount: 150000, startDate: '2026-02-01', endDate: '2026-06-20', fileName: 'gph_designer.pdf', comment: '', status: 'signing' },
+  { id: '3', folderId: 'contracts-services', name: 'Договор аренды офиса', type: 'Договор услуг', counterparty: 'БЦ "Алатау"', amount: 280000, startDate: '2026-01-01', endDate: '2026-12-31', fileName: 'rent_office.pdf', comment: 'Ежемесячная оплата до 5-го числа', status: 'active' },
+  { id: '4', folderId: 'employees-labor', name: 'Трудовой договор — Иванова', type: 'Трудовой', counterparty: 'Иванова М.К.', amount: null, startDate: '2025-03-01', endDate: '2026-03-01', fileName: 'labor_ivanova.pdf', comment: '', status: 'renewal' },
+  { id: '5', folderId: 'partners-clients', name: 'Партнёрское соглашение', type: 'Доп. соглашение', counterparty: 'АО "КазМедиа"', amount: 800000, startDate: '2026-01-01', endDate: '2026-06-10', fileName: 'partner_kazmedia.pdf', comment: 'Истекает скоро!', status: 'active' },
+  { id: '6', folderId: 'contracts-gph', name: 'ГПХ — копирайтер', type: 'ГПХ', counterparty: 'Назарбеков Е.С.', amount: 80000, startDate: '2026-04-01', endDate: '2026-04-30', fileName: 'gph_copy.pdf', comment: '', status: 'closing' },
+  { id: '7', folderId: 'employees-nda', name: 'NDA с разработчиком', type: 'NDA', counterparty: 'Ким Д.В.', amount: null, startDate: '2026-01-10', endDate: '2027-01-10', fileName: 'nda_dev.pdf', comment: '', status: 'active' },
+  { id: '8', folderId: 'partners-suppliers', name: 'Договор поставки оборудования', type: 'Договор услуг', counterparty: 'ТОО "ТехноПарт"', amount: 1200000, startDate: '2025-11-01', endDate: '2026-04-30', fileName: 'supply_equip.pdf', comment: 'Гарантия 12 мес.', status: 'overdue' },
+];
+
+// ─── Helpers ──────────────────────────────────────────────────────────────────
+
+function getStatusInfo(statusId, folderId) {
+  const isEmployee = EMPLOYEE_FOLDER_IDS.includes(folderId);
+  const list = isEmployee ? EMPLOYEE_STATUSES : CONTRACT_STATUSES;
+  return list.find(s => s.id === statusId) || list[0];
+}
+
+function getDaysUntil(dateStr) {
+  if (!dateStr) return null;
+  const diff = new Date(dateStr) - new Date();
+  return Math.ceil(diff / (1000 * 60 * 60 * 24));
+}
+
+function formatDate(dateStr) {
+  if (!dateStr) return '—';
+  return new Date(dateStr).toLocaleDateString('ru-RU', { day: '2-digit', month: '2-digit', year: 'numeric' });
+}
+
+function formatAmount(amount) {
+  if (!amount) return null;
+  return new Intl.NumberFormat('ru-RU').format(amount) + ' ₸';
+}
+
+function useLocalStorage(key, initial) {
+  const [val, setVal] = useState(() => {
+    try { const s = localStorage.getItem(key); return s ? JSON.parse(s) : initial; }
+    catch { return initial; }
+  });
+  useEffect(() => { localStorage.setItem(key, JSON.stringify(val)); }, [key, val]);
+  return [val, setVal];
+}
+
+function getAllFolders(tree) {
+  const res = [];
+  tree.forEach(g => { res.push(g); (g.children || []).forEach(c => res.push(c)); });
+  return res;
+}
+
+function flattenTree(tree) { return getAllFolders(tree); }
+
+// ─── Components ───────────────────────────────────────────────────────────────
+
+function Badge({ statusId, folderId }) {
+  const info = getStatusInfo(statusId, folderId);
+  return (
+    <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium ${info.color}`}>
+      <span className={`w-1.5 h-1.5 rounded-full ${info.dot}`}></span>
+      {info.label}
+    </span>
+  );
+}
+
+function ProgressBar({ statusId }) {
+  const s = CONTRACT_STATUSES.find(x => x.id === statusId);
+  const step = s?.step || 0;
+  const total = 6;
+  return (
+    <div className="mb-4">
+      <div className="flex items-center gap-1 mb-1">
+        {CONTRACT_STATUSES.filter(x => x.step).map(x => (
+          <div key={x.id} className="flex items-center flex-1">
+            <div className={`h-2 flex-1 rounded-full transition-all ${x.step <= step ? x.dot : 'bg-gray-200'}`}></div>
+          </div>
+        ))}
+      </div>
+      <div className="flex justify-between text-xs text-gray-400 mt-1">
+        <span>Инициация</span><span>Завершён</span>
+      </div>
+    </div>
+  );
+}
+
+function Modal({ children, onClose }) {
+  useEffect(() => {
+    const h = e => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, [onClose]);
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm" onClick={onClose}>
+      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl mx-4 max-h-[90vh] overflow-y-auto fade-in" onClick={e => e.stopPropagation()}>
+        {children}
+      </div>
+    </div>
+  );
+}
+
+function DocForm({ doc, folderId, folders, onSave, onClose }) {
+  const isEmployee = EMPLOYEE_FOLDER_IDS.includes(folderId);
+  const statuses = isEmployee ? EMPLOYEE_STATUSES : CONTRACT_STATUSES;
+  const [form, setForm] = useState(doc || {
+    folderId: folderId || folders[0]?.id || '',
+    name: '', type: DOC_TYPES[0], counterparty: '', amount: '',
+    startDate: '', endDate: '', fileName: '', comment: '',
+    status: statuses[0]?.id || 'initiation',
+  });
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const handleSubmit = e => {
+    e.preventDefault();
+    if (!form.name.trim() || !form.counterparty.trim()) return;
+    onSave({ ...form, id: doc?.id || Date.now().toString(), amount: form.amount ? Number(form.amount) : null });
+  };
+  const selectedFolder = EMPLOYEE_FOLDER_IDS.includes(form.folderId);
+  const statusList = selectedFolder ? EMPLOYEE_STATUSES : CONTRACT_STATUSES;
+
+  return (
+    <form onSubmit={handleSubmit}>
+      <div className="p-6 border-b border-gray-100">
+        <h2 className="text-xl font-semibold text-gray-800">{doc ? 'Редактировать документ' : 'Новый документ'}</h2>
+      </div>
+      <div className="p-6 grid grid-cols-2 gap-4">
+        <div className="col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Название *</label>
+          <input className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" value={form.name} onChange={e => set('name', e.target.value)} placeholder="Название документа" required />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Папка</label>
+          <select className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" value={form.folderId} onChange={e => set('folderId', e.target.value)}>
+            {folders.filter(f => f.children === undefined).map(f => <option key={f.id} value={f.id}>{f.label}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Тип</label>
+          <select className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" value={form.type} onChange={e => set('type', e.target.value)}>
+            {DOC_TYPES.map(t => <option key={t}>{t}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Контрагент *</label>
+          <input className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" value={form.counterparty} onChange={e => set('counterparty', e.target.value)} placeholder="ФИО или компания" required />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Сумма (₸)</label>
+          <input type="number" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" value={form.amount} onChange={e => set('amount', e.target.value)} placeholder="0" />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Дата начала</label>
+          <input type="date" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" value={form.startDate} onChange={e => set('startDate', e.target.value)} />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Дата окончания</label>
+          <input type="date" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" value={form.endDate} onChange={e => set('endDate', e.target.value)} />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Статус</label>
+          <select className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" value={form.status} onChange={e => set('status', e.target.value)}>
+            {statusList.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+          </select>
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">Файл (имя)</label>
+          <input className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400" value={form.fileName} onChange={e => set('fileName', e.target.value)} placeholder="contract.pdf" />
+        </div>
+        <div className="col-span-2">
+          <label className="block text-sm font-medium text-gray-700 mb-1">Комментарий</label>
+          <textarea className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-400 resize-none" rows={3} value={form.comment} onChange={e => set('comment', e.target.value)} placeholder="Дополнительные сведения..." />
+        </div>
+      </div>
+      <div className="p-6 border-t border-gray-100 flex justify-end gap-3">
+        <button type="button" onClick={onClose} className="px-4 py-2 rounded-xl text-sm text-gray-600 hover:bg-gray-100 transition">Отмена</button>
+        <button type="submit" className="px-5 py-2 rounded-xl text-sm font-medium bg-indigo-600 text-white hover:bg-indigo-700 transition">Сохранить</button>
+      </div>
+    </form>
+  );
+}
+
+function DocDetail({ doc, folders, onClose, onEdit, onDelete, onStatusChange }) {
+  const isEmployee = EMPLOYEE_FOLDER_IDS.includes(doc.folderId);
+  const statuses = isEmployee ? EMPLOYEE_STATUSES : CONTRACT_STATUSES;
+  const folder = flattenTree(folders).find(f => f.id === doc.folderId);
+  const days = getDaysUntil(doc.endDate);
+  const isOverdue = days !== null && days < 0;
+  const isExpiringSoon = days !== null && days >= 0 && days <= 30;
+  const currentStep = CONTRACT_STATUSES.find(s => s.id === doc.status)?.step || 0;
+  const nextStatus = !isEmployee && CONTRACT_STATUSES.find(s => s.step === currentStep + 1);
+
+  return (
+    <div>
+      <div className="p-6 border-b border-gray-100 flex items-start justify-between gap-4">
+        <div>
+          <div className="text-xs text-gray-400 mb-1">{folder?.label}</div>
+          <h2 className="text-xl font-semibold text-gray-800 leading-tight">{doc.name}</h2>
+          <div className="mt-2 flex items-center gap-2 flex-wrap">
+            <Badge statusId={doc.status} folderId={doc.folderId} />
+            <span className="text-xs bg-gray-100 text-gray-600 px-2.5 py-0.5 rounded-full">{doc.type}</span>
+          </div>
+        </div>
+        <button onClick={onClose} className="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
+      </div>
+      <div className="p-6">
+        {!isEmployee && <ProgressBar statusId={doc.status} />}
+
+        {(isOverdue || isExpiringSoon) && (
+          <div className={`mb-4 px-4 py-3 rounded-xl text-sm font-medium ${isOverdue ? 'bg-red-50 text-red-700 border border-red-200' : 'bg-yellow-50 text-yellow-700 border border-yellow-200'}`}>
+            {isOverdue ? `⚠️ Договор просрочен на ${Math.abs(days)} дн.` : `⏰ Истекает через ${days} дн. (${formatDate(doc.endDate)})`}
+          </div>
+        )}
+
+        <div className="grid grid-cols-2 gap-4 mb-5">
+          <div>
+            <div className="text-xs text-gray-400 mb-0.5">Контрагент</div>
+            <div className="text-sm font-medium text-gray-800">{doc.counterparty}</div>
+          </div>
+          {doc.amount && <div>
+            <div className="text-xs text-gray-400 mb-0.5">Сумма</div>
+            <div className="text-sm font-medium text-gray-800">{formatAmount(doc.amount)}</div>
+          </div>}
+          {doc.startDate && <div>
+            <div className="text-xs text-gray-400 mb-0.5">Дата начала</div>
+            <div className="text-sm text-gray-700">{formatDate(doc.startDate)}</div>
+          </div>}
+          {doc.endDate && <div>
+            <div className="text-xs text-gray-400 mb-0.5">Дата окончания</div>
+            <div className="text-sm text-gray-700">{formatDate(doc.endDate)}</div>
+          </div>}
+          {doc.fileName && <div className="col-span-2">
+            <div className="text-xs text-gray-400 mb-0.5">Файл</div>
+            <div className="text-sm text-indigo-600 flex items-center gap-1.5">
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" /></svg>
+              {doc.fileName}
+            </div>
+          </div>}
+          {doc.comment && <div className="col-span-2">
+            <div className="text-xs text-gray-400 mb-0.5">Комментарий</div>
+            <div className="text-sm text-gray-700 bg-gray-50 rounded-xl px-3 py-2">{doc.comment}</div>
+          </div>}
+        </div>
+
+        <div className="border-t border-gray-100 pt-4">
+          <div className="text-xs font-medium text-gray-500 mb-2">СМЕНИТЬ СТАТУС</div>
+          <div className="flex flex-wrap gap-2">
+            {statuses.map(s => (
+              <button key={s.id} onClick={() => onStatusChange(doc.id, s.id)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-medium transition border ${doc.status === s.id ? s.color + ' border-transparent ring-2 ring-offset-1 ring-indigo-400' : 'bg-white border-gray-200 text-gray-600 hover:border-indigo-300'}`}>
+                {s.label}
+              </button>
+            ))}
+          </div>
+          {nextStatus && (
+            <button onClick={() => onStatusChange(doc.id, nextStatus.id)}
+              className="mt-3 w-full py-2 rounded-xl text-sm font-medium bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition border border-indigo-200">
+              → Следующий этап: {nextStatus.label}
+            </button>
+          )}
+        </div>
+      </div>
+      <div className="p-6 border-t border-gray-100 flex gap-3">
+        <button onClick={() => onEdit(doc)} className="flex-1 py-2 rounded-xl text-sm font-medium border border-gray-200 text-gray-700 hover:bg-gray-50 transition">Редактировать</button>
+        <button onClick={() => { if (confirm('Удалить документ?')) { onDelete(doc.id); onClose(); } }} className="px-4 py-2 rounded-xl text-sm font-medium text-red-600 hover:bg-red-50 transition">Удалить</button>
+      </div>
+    </div>
+  );
+}
+
+function DocCard({ doc, view, onClick }) {
+  const days = getDaysUntil(doc.endDate);
+  const isOverdue = days !== null && days < 0;
+  const isExpiringSoon = days !== null && days >= 0 && days <= 30;
+  const border = isOverdue ? 'border-red-300 bg-red-50/30' : isExpiringSoon ? 'border-yellow-300 bg-yellow-50/20' : 'border-gray-200 bg-white';
+
+  if (view === 'list') {
+    return (
+      <div onClick={onClick} className={`border rounded-xl p-4 cursor-pointer hover:shadow-md transition-all flex items-center gap-4 ${border}`}>
+        <div className="flex-1 min-w-0">
+          <div className="font-medium text-gray-800 text-sm truncate">{doc.name}</div>
+          <div className="text-xs text-gray-500 mt-0.5">{doc.counterparty}</div>
+        </div>
+        <div className="hidden sm:block text-xs text-gray-400 w-24 shrink-0">{formatDate(doc.endDate)}</div>
+        {doc.amount && <div className="hidden sm:block text-sm font-medium text-gray-700 w-28 shrink-0 text-right">{formatAmount(doc.amount)}</div>}
+        <Badge statusId={doc.status} folderId={doc.folderId} />
+        {isExpiringSoon && !isOverdue && <span className="text-xs text-yellow-600 font-medium shrink-0">{days}д.</span>}
+        {isOverdue && <span className="text-xs text-red-600 font-medium shrink-0">просрочен</span>}
+      </div>
+    );
+  }
+  return (
+    <div onClick={onClick} className={`border rounded-2xl p-5 cursor-pointer hover:shadow-md transition-all ${border}`}>
+      <div className="flex items-start justify-between gap-2 mb-3">
+        <div className="font-medium text-gray-800 text-sm leading-snug line-clamp-2 flex-1">{doc.name}</div>
+        <Badge statusId={doc.status} folderId={doc.folderId} />
+      </div>
+      <div className="text-xs text-gray-500 mb-2">{doc.counterparty}</div>
+      <div className="flex items-center justify-between text-xs text-gray-400">
+        <span>{doc.type}</span>
+        {doc.endDate && <span className={isOverdue ? 'text-red-500 font-medium' : isExpiringSoon ? 'text-yellow-600 font-medium' : ''}>
+          {isOverdue ? '⚠ просрочен' : isExpiringSoon ? `⏰ ${days} дн.` : formatDate(doc.endDate)}
+        </span>}
+      </div>
+      {doc.amount && <div className="mt-2 text-sm font-semibold text-gray-700">{formatAmount(doc.amount)}</div>}
+    </div>
+  );
+}
+
+function Dashboard({ docs, folders, onSelectFolder }) {
+  const now = new Date();
+  const active = docs.filter(d => d.status === 'active');
+  const expiring = docs.filter(d => { const days = getDaysUntil(d.endDate); return days !== null && days >= 0 && days <= 30; });
+  const done = docs.filter(d => d.status === 'done');
+  const actionNeeded = docs.filter(d => ['closing', 'review'].includes(d.status));
+
+  const byFolder = useMemo(() => {
+    const map = {};
+    docs.forEach(d => { map[d.folderId] = (map[d.folderId] || 0) + 1; });
+    return map;
+  }, [docs]);
+
+  return (
+    <div className="fade-in">
+      <h1 className="text-2xl font-bold text-gray-800 mb-6">Дашборд</h1>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {[
+          { label: 'Всего документов', value: docs.length, color: 'bg-indigo-50 text-indigo-600', icon: '📄' },
+          { label: 'Активных', value: active.length, color: 'bg-green-50 text-green-600', icon: '✅' },
+          { label: 'Истекают скоро', value: expiring.length, color: 'bg-yellow-50 text-yellow-600', icon: '⏰' },
+          { label: 'Завершённых', value: done.length, color: 'bg-gray-50 text-gray-600', icon: '📦' },
+        ].map(c => (
+          <div key={c.label} className={`rounded-2xl p-5 ${c.color} border border-white`}>
+            <div className="text-2xl mb-1">{c.icon}</div>
+            <div className="text-3xl font-bold mb-1">{c.value}</div>
+            <div className="text-sm opacity-80">{c.label}</div>
+          </div>
+        ))}
+      </div>
+
+      {expiring.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-base font-semibold text-gray-700 mb-3 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-yellow-400 inline-block"></span> Истекают в ближайшие 30 дней
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {expiring.map(d => {
+              const days = getDaysUntil(d.endDate);
+              return (
+                <div key={d.id} className="bg-yellow-50 border border-yellow-200 rounded-xl p-4">
+                  <div className="font-medium text-sm text-gray-800 mb-1 truncate">{d.name}</div>
+                  <div className="text-xs text-gray-500 mb-2">{d.counterparty}</div>
+                  <div className="flex items-center justify-between">
+                    <Badge statusId={d.status} folderId={d.folderId} />
+                    <span className="text-xs font-semibold text-yellow-700">{days} дн.</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {actionNeeded.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-base font-semibold text-gray-700 mb-3 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-orange-400 inline-block"></span> Требуют действия
+          </h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {actionNeeded.map(d => (
+              <div key={d.id} className="bg-orange-50 border border-orange-200 rounded-xl p-4">
+                <div className="font-medium text-sm text-gray-800 mb-1 truncate">{d.name}</div>
+                <div className="text-xs text-gray-500 mb-2">{d.counterparty}</div>
+                <Badge statusId={d.status} folderId={d.folderId} />
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <div>
+        <h2 className="text-base font-semibold text-gray-700 mb-3">По папкам</h2>
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+          {flattenTree(folders).filter(f => !f.children && byFolder[f.id]).map(f => (
+            <button key={f.id} onClick={() => onSelectFolder(f.id)} className="text-left bg-white border border-gray-200 rounded-xl p-4 hover:border-indigo-300 hover:shadow-sm transition">
+              <div className="text-sm text-gray-500 mb-1">{f.icon} {f.label}</div>
+              <div className="text-2xl font-bold text-gray-800">{byFolder[f.id] || 0}</div>
+              <div className="text-xs text-gray-400">документов</div>
+            </button>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Sidebar ──────────────────────────────────────────────────────────────────
+
+function Sidebar({ folders, selectedFolder, onSelect, onAddFolder, onRenameFolder, onDeleteFolder, sidebarOpen }) {
+  const [expanded, setExpanded] = useState({ contracts: true, employees: true, partners: true });
+  const [editing, setEditing] = useState(null);
+  const [editVal, setEditVal] = useState('');
+  const [addingIn, setAddingIn] = useState(null);
+  const [newName, setNewName] = useState('');
+
+  const toggle = id => setExpanded(e => ({ ...e, [id]: !e[id] }));
+
+  const startEdit = (f, e) => { e.stopPropagation(); setEditing(f.id); setEditVal(f.label); };
+  const commitEdit = id => { if (editVal.trim()) onRenameFolder(id, editVal.trim()); setEditing(null); };
+  const startAdd = (parentId, e) => { e.stopPropagation(); setAddingIn(parentId); setNewName(''); };
+  const commitAdd = parentId => { if (newName.trim()) { onAddFolder(parentId, newName.trim()); } setAddingIn(null); };
+
+  return (
+    <aside className={`${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} lg:translate-x-0 fixed lg:static inset-y-0 left-0 z-40 w-64 bg-slate-900 text-white flex flex-col transition-transform duration-200`}>
+      <div className="p-5 border-b border-slate-700">
+        <div className="flex items-center gap-2.5">
+          <div className="w-8 h-8 bg-indigo-500 rounded-lg flex items-center justify-center text-sm">📋</div>
+          <div>
+            <div className="font-semibold text-sm">Документооборот</div>
+            <div className="text-xs text-slate-400">Система управления</div>
+          </div>
+        </div>
+      </div>
+
+      <nav className="flex-1 overflow-y-auto py-3 px-2">
+        <button onClick={() => onSelect(null)}
+          className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm mb-1 transition ${selectedFolder === null ? 'bg-indigo-600 text-white' : 'text-slate-300 hover:bg-slate-800'}`}>
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+          Дашборд
+        </button>
+
+        {folders.map(group => (
+          <div key={group.id} className="mb-1">
+            <div className="flex items-center gap-1">
+              <button onClick={() => toggle(group.id)}
+                className="flex-1 flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-sm text-slate-300 hover:bg-slate-800 transition">
+                <span className={`text-slate-500 transition-transform ${expanded[group.id] ? 'rotate-90' : ''}`}>›</span>
+                <span>{group.icon}</span>
+                <span className="font-medium">{group.label}</span>
+              </button>
+              <button onClick={e => startAdd(group.id, e)} title="Добавить подпапку"
+                className="p-1.5 rounded-lg text-slate-500 hover:text-slate-300 hover:bg-slate-800 transition text-lg leading-none">+</button>
+            </div>
+
+            {expanded[group.id] && (
+              <div className="ml-4 pl-3 border-l border-slate-700 mt-0.5 space-y-0.5">
+                {(group.children || []).map(child => (
+                  <div key={child.id} className="group flex items-center gap-1">
+                    {editing === child.id ? (
+                      <input autoFocus className="flex-1 bg-slate-700 text-white text-xs px-2 py-1.5 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                        value={editVal} onChange={e => setEditVal(e.target.value)}
+                        onBlur={() => commitEdit(child.id)} onKeyDown={e => { if (e.key === 'Enter') commitEdit(child.id); if (e.key === 'Escape') setEditing(null); }} />
+                    ) : (
+                      <button onClick={() => onSelect(child.id)}
+                        className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-xl text-xs transition ${selectedFolder === child.id ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:bg-slate-800 hover:text-slate-200'}`}>
+                        <span>{child.icon}</span>
+                        <span className="truncate">{child.label}</span>
+                      </button>
+                    )}
+                    <div className="hidden group-hover:flex gap-0.5">
+                      <button onClick={e => startEdit(child, e)} className="p-1 rounded text-slate-500 hover:text-slate-300 text-xs">✏️</button>
+                      <button onClick={e => { e.stopPropagation(); if (confirm('Удалить папку?')) onDeleteFolder(child.id, group.id); }} className="p-1 rounded text-slate-500 hover:text-red-400 text-xs">🗑️</button>
+                    </div>
+                  </div>
+                ))}
+                {addingIn === group.id && (
+                  <div className="flex items-center gap-1 mt-1">
+                    <input autoFocus className="flex-1 bg-slate-700 text-white text-xs px-2 py-1.5 rounded-lg focus:outline-none focus:ring-1 focus:ring-indigo-400"
+                      placeholder="Название папки..." value={newName} onChange={e => setNewName(e.target.value)}
+                      onBlur={() => commitAdd(group.id)} onKeyDown={e => { if (e.key === 'Enter') commitAdd(group.id); if (e.key === 'Escape') setAddingIn(null); }} />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        ))}
+      </nav>
+    </aside>
+  );
+}
+
+// ─── Main App ─────────────────────────────────────────────────────────────────
+
+function App() {
+  const [docs, setDocs] = useLocalStorage('docflow_docs', SAMPLE_DOCS);
+  const [folders, setFolders] = useLocalStorage('docflow_folders', FOLDER_TREE);
+  const [selectedFolder, setSelectedFolder] = useState(null);
+  const [view, setView] = useState('grid');
+  const [search, setSearch] = useState('');
+  const [filterStatus, setFilterStatus] = useState('');
+  const [filterType, setFilterType] = useState('');
+  const [sortBy, setSortBy] = useState('name');
+  const [showForm, setShowForm] = useState(false);
+  const [editDoc, setEditDoc] = useState(null);
+  const [detailDoc, setDetailDoc] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const allFolders = useMemo(() => flattenTree(folders), [folders]);
+  const currentFolderInfo = allFolders.find(f => f.id === selectedFolder);
+
+  const visibleDocs = useMemo(() => {
+    let d = selectedFolder ? docs.filter(x => x.folderId === selectedFolder) : docs;
+    if (search) d = d.filter(x => x.name.toLowerCase().includes(search.toLowerCase()) || x.counterparty.toLowerCase().includes(search.toLowerCase()));
+    if (filterStatus) d = d.filter(x => x.status === filterStatus);
+    if (filterType) d = d.filter(x => x.type === filterType);
+    d = [...d].sort((a, b) => {
+      if (sortBy === 'name') return a.name.localeCompare(b.name);
+      if (sortBy === 'endDate') return (a.endDate || '').localeCompare(b.endDate || '');
+      if (sortBy === 'status') return a.status.localeCompare(b.status);
+      return 0;
+    });
+    return d;
+  }, [docs, selectedFolder, search, filterStatus, filterType, sortBy]);
+
+  const saveDoc = doc => {
+    setDocs(prev => {
+      const idx = prev.findIndex(d => d.id === doc.id);
+      if (idx >= 0) { const n = [...prev]; n[idx] = doc; return n; }
+      return [...prev, doc];
+    });
+    setShowForm(false); setEditDoc(null);
+  };
+
+  const deleteDoc = id => setDocs(prev => prev.filter(d => d.id !== id));
+
+  const changeStatus = (id, status) => {
+    setDocs(prev => prev.map(d => d.id === id ? { ...d, status } : d));
+    setDetailDoc(prev => prev?.id === id ? { ...prev, status } : prev);
+  };
+
+  const addFolder = (parentId, label) => {
+    setFolders(prev => prev.map(g => g.id === parentId
+      ? { ...g, children: [...(g.children || []), { id: `${parentId}-${Date.now()}`, label, icon: '📂' }] }
+      : g));
+  };
+
+  const renameFolder = (id, label) => {
+    setFolders(prev => prev.map(g => ({
+      ...g,
+      children: (g.children || []).map(c => c.id === id ? { ...c, label } : c),
+    })));
+  };
+
+  const deleteFolder = (id, parentId) => {
+    setFolders(prev => prev.map(g => g.id === parentId
+      ? { ...g, children: (g.children || []).filter(c => c.id !== id) }
+      : g));
+    setDocs(prev => prev.filter(d => d.folderId !== id));
+    if (selectedFolder === id) setSelectedFolder(null);
+  };
+
+  const isEmployee = EMPLOYEE_FOLDER_IDS.includes(selectedFolder);
+  const statusList = isEmployee ? EMPLOYEE_STATUSES : CONTRACT_STATUSES;
+
+  return (
+    <div className="h-screen flex overflow-hidden bg-gray-50">
+      {sidebarOpen && <div className="fixed inset-0 z-30 bg-black/40 lg:hidden" onClick={() => setSidebarOpen(false)} />}
+      <Sidebar folders={folders} selectedFolder={selectedFolder} onSelect={id => { setSelectedFolder(id); setSidebarOpen(false); }}
+        onAddFolder={addFolder} onRenameFolder={renameFolder} onDeleteFolder={deleteFolder} sidebarOpen={sidebarOpen} />
+
+      <main className="flex-1 flex flex-col overflow-hidden">
+        {/* Topbar */}
+        <div className="bg-white border-b border-gray-200 px-4 lg:px-6 py-3 flex items-center gap-3">
+          <button className="lg:hidden p-2 rounded-lg text-gray-500 hover:bg-gray-100" onClick={() => setSidebarOpen(true)}>
+            <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" /></svg>
+          </button>
+          <div className="flex-1 relative">
+            <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+            <input className="w-full max-w-sm pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-400 bg-gray-50"
+              placeholder="Поиск по названию или контрагенту..." value={search} onChange={e => setSearch(e.target.value)} />
+          </div>
+          <button onClick={() => { setEditDoc(null); setShowForm(true); }}
+            className="flex items-center gap-2 px-4 py-2 bg-indigo-600 text-white text-sm font-medium rounded-xl hover:bg-indigo-700 transition whitespace-nowrap">
+            <span className="text-base leading-none">+</span> Добавить
+          </button>
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-y-auto p-4 lg:p-6">
+          {selectedFolder === null ? (
+            <Dashboard docs={docs} folders={folders} onSelectFolder={setSelectedFolder} />
+          ) : (
+            <div className="fade-in">
+              <div className="flex items-center justify-between gap-4 mb-5 flex-wrap">
+                <div>
+                  <h1 className="text-xl font-bold text-gray-800">{currentFolderInfo?.icon} {currentFolderInfo?.label}</h1>
+                  <p className="text-sm text-gray-500 mt-0.5">{visibleDocs.length} документов</p>
+                </div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <select className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-white" value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
+                    <option value="">Все статусы</option>
+                    {statusList.map(s => <option key={s.id} value={s.id}>{s.label}</option>)}
+                  </select>
+                  <select className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-white" value={filterType} onChange={e => setFilterType(e.target.value)}>
+                    <option value="">Все типы</option>
+                    {DOC_TYPES.map(t => <option key={t}>{t}</option>)}
+                  </select>
+                  <select className="text-xs border border-gray-200 rounded-lg px-2.5 py-1.5 focus:outline-none focus:ring-1 focus:ring-indigo-400 bg-white" value={sortBy} onChange={e => setSortBy(e.target.value)}>
+                    <option value="name">По названию</option>
+                    <option value="endDate">По дате</option>
+                    <option value="status">По статусу</option>
+                  </select>
+                  <div className="flex border border-gray-200 rounded-lg overflow-hidden">
+                    <button onClick={() => setView('grid')} className={`px-2.5 py-1.5 text-xs transition ${view === 'grid' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>⊞</button>
+                    <button onClick={() => setView('list')} className={`px-2.5 py-1.5 text-xs transition ${view === 'list' ? 'bg-indigo-600 text-white' : 'bg-white text-gray-500 hover:bg-gray-50'}`}>☰</button>
+                  </div>
+                </div>
+              </div>
+
+              {visibleDocs.length === 0 ? (
+                <div className="text-center py-20 text-gray-400">
+                  <div className="text-5xl mb-3">📭</div>
+                  <div className="text-lg font-medium">Документов нет</div>
+                  <div className="text-sm mt-1">Нажмите «+ Добавить» чтобы создать первый документ</div>
+                </div>
+              ) : (
+                <div className={view === 'grid' ? 'grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4' : 'space-y-2'}>
+                  {visibleDocs.map(doc => (
+                    <DocCard key={doc.id} doc={doc} view={view} onClick={() => setDetailDoc(doc)} />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </main>
+
+      {/* Modals */}
+      {(showForm || editDoc) && (
+        <Modal onClose={() => { setShowForm(false); setEditDoc(null); }}>
+          <DocForm doc={editDoc} folderId={selectedFolder} folders={allFolders} onSave={saveDoc} onClose={() => { setShowForm(false); setEditDoc(null); }} />
+        </Modal>
+      )}
+      {detailDoc && (
+        <Modal onClose={() => setDetailDoc(null)}>
+          <DocDetail doc={detailDoc} folders={folders} onClose={() => setDetailDoc(null)}
+            onEdit={doc => { setDetailDoc(null); setEditDoc(doc); }}
+            onDelete={deleteDoc} onStatusChange={changeStatus} />
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
