@@ -300,10 +300,16 @@
     padding: 12px 0 0;
   }
 
-  .reset-btn {
+  .footer-btns {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  .reset-btn, .share-btn {
     font-family: 'Golos Text', sans-serif;
     font-size: 13px;
-    color: var(--text3);
     background: none;
     border: 1px solid var(--border);
     border-radius: 8px;
@@ -312,10 +318,25 @@
     transition: color 0.15s, border-color 0.15s, background 0.15s;
   }
 
+  .reset-btn {
+    color: var(--text3);
+  }
+
   .reset-btn:hover {
     color: var(--text2);
-    border-color: var(--border);
     background: var(--surface2);
+  }
+
+  .share-btn {
+    color: var(--accent-text);
+    border-color: var(--accent-bg);
+    background: var(--accent-bg);
+  }
+
+  .share-btn:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
   }
 
   .confetti-wrap {
@@ -478,8 +499,38 @@ const SECTIONS = [
 const KEY = 'vibe_b2b_cl_v1';
 let state = {};
 
-function save() { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){} }
-function load() { try { const d = localStorage.getItem(KEY); if (d) state = JSON.parse(d); } catch(e){} }
+function save() {
+  try { localStorage.setItem(KEY, JSON.stringify(state)); } catch(e){}
+  // sync to URL hash so shared links reflect current state
+  const encoded = btoa(unescape(encodeURIComponent(JSON.stringify(state))));
+  history.replaceState(null, '', '#' + encoded);
+}
+
+function load() {
+  // prefer URL hash state (shared link) over localStorage
+  try {
+    if (location.hash && location.hash.length > 1) {
+      const decoded = decodeURIComponent(escape(atob(location.hash.slice(1))));
+      state = JSON.parse(decoded);
+      return;
+    }
+  } catch(e){}
+  try { const d = localStorage.getItem(KEY); if (d) state = JSON.parse(d); } catch(e){}
+}
+
+function shareLink() {
+  const url = location.href;
+  if (navigator.clipboard) {
+    navigator.clipboard.writeText(url).then(() => {
+      const btn = document.getElementById('share-btn');
+      const orig = btn.textContent;
+      btn.textContent = '✓ Ссылка скопирована';
+      setTimeout(() => { btn.textContent = orig; }, 2000);
+    });
+  } else {
+    prompt('Скопируйте ссылку:', url);
+  }
+}
 
 function totals() {
   let total = 0, done = 0;
@@ -568,7 +619,7 @@ function render() {
     document.getElementById('chev-0').classList.add('open');
   }
 
-  main.insertAdjacentHTML('beforeend', `<div class="footer"><button class="reset-btn" onclick="resetAll()">↺ Сбросить всё</button></div>`);
+  main.insertAdjacentHTML('beforeend', `<div class="footer"><div class="footer-btns"><button class="share-btn" id="share-btn" onclick="shareLink()">🔗 Скопировать ссылку с прогрессом</button><button class="reset-btn" onclick="resetAll()">↺ Сбросить всё</button></div></div>`);
   updateProgress();
 }
 
