@@ -1,868 +1,194 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Еженедельный отчёт — Вайбкодинг | Samruk Business Academy</title>
-  <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-
-    :root {
-      --bg:      #060C14;
-      --bg2:     #0A1220;
-      --bg3:     #0D1628;
-      --card:    #0F1A2E;
-      --border:  #162236;
-      --accent:  #00C8E8;
-      --accent2: #0099BB;
-      --green:   #00D97E;
-      --yellow:  #F5C842;
-      --red:     #FF5C5C;
-      --gray:    #546E7A;
-      --text:    #FFFFFF;
-      --muted:   #8BAABB;
-    }
-
-    html { scroll-behavior: smooth; }
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      line-height: 1.6;
-      overflow-x: hidden;
-    }
-
-    /* ── HEADER ── */
-    header {
-      background: linear-gradient(180deg, #071020 0%, var(--bg) 100%);
-      border-bottom: 1px solid var(--border);
-      padding: 32px 48px 40px;
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 24px;
-      flex-wrap: wrap;
-    }
-
-    .header-left { display: flex; flex-direction: column; gap: 8px; }
-
-    .badges { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 4px; }
-    .badge {
-      font-size: 11px;
-      font-weight: 600;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      padding: 4px 12px;
-      border-radius: 100px;
-      border: 1px solid;
-    }
-    .badge-blue  { color: var(--accent);  border-color: var(--accent);  background: rgba(0,200,232,.08); }
-    .badge-green { color: var(--green);   border-color: var(--green);   background: rgba(0,217,126,.08); }
-
-    header h1 {
-      font-size: clamp(22px, 3vw, 34px);
-      font-weight: 800;
-      line-height: 1.2;
-    }
-    header h1 span { color: var(--accent); }
-
-    .header-meta {
-      font-size: 13px;
-      color: var(--muted);
-      margin-top: 2px;
-    }
-    .header-meta b { color: var(--text); }
-
-    .header-right {
-      text-align: right;
-      flex-shrink: 0;
-    }
-    .week-label {
-      font-size: 12px;
-      color: var(--muted);
-      text-transform: uppercase;
-      letter-spacing: .1em;
-      margin-bottom: 4px;
-    }
-    .week-range {
-      font-size: 16px;
-      font-weight: 700;
-      color: var(--text);
-    }
-    .report-num {
-      font-size: 12px;
-      color: var(--gray);
-      margin-top: 6px;
-    }
-
-    /* ── MAIN ── */
-    main {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 48px 24px 80px;
-      display: flex;
-      flex-direction: column;
-      gap: 40px;
-    }
-
-    /* ── SECTION TITLE ── */
-    .section-title {
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .12em;
-      color: var(--muted);
-      margin-bottom: 16px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .section-title::after {
-      content: '';
-      flex: 1;
-      height: 1px;
-      background: var(--border);
-    }
-
-    /* ── KPI GRID ── */
-    .kpi-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      gap: 16px;
-    }
-
-    .kpi-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-      position: relative;
-      overflow: hidden;
-      transition: border-color .2s, transform .2s;
-    }
-    .kpi-card:hover { border-color: var(--accent2); transform: translateY(-2px); }
-    .kpi-card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(ellipse at top left, rgba(0,200,232,.06) 0%, transparent 60%);
-      pointer-events: none;
-    }
-
-    .kpi-card.highlight { border-color: var(--accent); }
-    .kpi-card.highlight::before {
-      background: radial-gradient(ellipse at top left, rgba(0,200,232,.14) 0%, transparent 60%);
-    }
-
-    .kpi-icon {
-      font-size: 22px;
-      margin-bottom: 12px;
-      display: block;
-    }
-    .kpi-label {
-      font-size: 12px;
-      color: var(--muted);
-      margin-bottom: 6px;
-      font-weight: 500;
-    }
-    .kpi-value {
-      font-size: 36px;
-      font-weight: 800;
-      line-height: 1;
-      color: var(--text);
-    }
-    .kpi-value.accent { color: var(--accent); }
-    .kpi-value.green  { color: var(--green); }
-    .kpi-sub {
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 8px;
-    }
-    .kpi-delta {
-      display: inline-flex;
-      align-items: center;
-      gap: 4px;
-      font-size: 12px;
-      font-weight: 600;
-      padding: 2px 8px;
-      border-radius: 100px;
-      margin-top: 8px;
-    }
-    .delta-up   { background: rgba(0,217,126,.12); color: var(--green); }
-    .delta-down { background: rgba(255,92,92,.12);  color: var(--red); }
-
-    /* ── PROGRESS BAR ── */
-    .progress-section {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 28px 32px;
-    }
-    .progress-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-    .progress-title {
-      font-size: 15px;
-      font-weight: 700;
-    }
-    .progress-vals {
-      font-size: 13px;
-      color: var(--muted);
-    }
-    .progress-vals b { color: var(--accent); font-size: 18px; }
-    .bar-track {
-      height: 10px;
-      background: var(--bg2);
-      border-radius: 100px;
-      overflow: hidden;
-    }
-    .bar-fill {
-      height: 100%;
-      border-radius: 100px;
-      background: linear-gradient(90deg, var(--accent2), var(--accent));
-      transition: width 1s ease;
-    }
-    .progress-foot {
-      display: flex;
-      justify-content: space-between;
-      margin-top: 10px;
-      font-size: 12px;
-      color: var(--gray);
-    }
-
-    /* ── TABLE ── */
-    .table-wrap {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      overflow: hidden;
-    }
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 14px;
-    }
-    thead {
-      background: var(--bg2);
-    }
-    thead th {
-      padding: 14px 20px;
-      text-align: left;
-      font-size: 11px;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: .08em;
-      color: var(--muted);
-      border-bottom: 1px solid var(--border);
-    }
-    tbody tr {
-      border-bottom: 1px solid var(--border);
-      transition: background .15s;
-    }
-    tbody tr:last-child { border-bottom: none; }
-    tbody tr:hover { background: rgba(0,200,232,.04); }
-    td {
-      padding: 14px 20px;
-      vertical-align: middle;
-    }
-    .td-company { font-weight: 600; }
-    .td-muted { color: var(--muted); font-size: 13px; }
-    .pill {
-      display: inline-flex;
-      align-items: center;
-      gap: 5px;
-      font-size: 12px;
-      font-weight: 600;
-      padding: 3px 10px;
-      border-radius: 100px;
-    }
-    .pill-green  { background: rgba(0,217,126,.12); color: var(--green); }
-    .pill-blue   { background: rgba(0,200,232,.12); color: var(--accent); }
-    .pill-yellow { background: rgba(245,200,66,.12); color: var(--yellow); }
-
-    /* ── COHORT CARDS ── */
-    .cohort-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 16px;
-    }
-    .cohort-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-      transition: border-color .2s;
-    }
-    .cohort-card:hover { border-color: var(--accent2); }
-    .cohort-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-    }
-    .cohort-name { font-weight: 700; font-size: 15px; }
-    .cohort-dates { font-size: 12px; color: var(--muted); margin-top: 3px; }
-    .mini-bar-track {
-      height: 6px;
-      background: var(--bg2);
-      border-radius: 100px;
-      overflow: hidden;
-    }
-    .mini-bar-fill {
-      height: 100%;
-      border-radius: 100px;
-      background: linear-gradient(90deg, var(--accent2), var(--accent));
-    }
-    .cohort-stats {
-      display: flex;
-      gap: 20px;
-    }
-    .cs-item { display: flex; flex-direction: column; }
-    .cs-val { font-size: 20px; font-weight: 800; color: var(--text); }
-    .cs-lab { font-size: 11px; color: var(--muted); }
-
-    /* ── HIGHLIGHTS ── */
-    .highlights-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-    .highlight-item {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-left: 3px solid var(--accent);
-      border-radius: 0 12px 12px 0;
-      padding: 16px 20px;
-      display: flex;
-      gap: 14px;
-      align-items: flex-start;
-    }
-    .highlight-item.risk  { border-left-color: var(--red); }
-    .highlight-item.note  { border-left-color: var(--yellow); }
-    .hi-icon { font-size: 20px; flex-shrink: 0; margin-top: 1px; }
-    .hi-text b { font-weight: 600; display: block; margin-bottom: 2px; font-size: 14px; }
-    .hi-text p { font-size: 13px; color: var(--muted); }
-
-    /* ── FOOTER ── */
-    footer {
-      border-top: 1px solid var(--border);
-      padding: 28px 48px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-wrap: wrap;
-      gap: 12px;
-      color: var(--muted);
-      font-size: 13px;
-    }
-    footer b { color: var(--text); }
-
-    /* ── EDITABLE ── */
-    [contenteditable] { outline: none; }
-    [contenteditable]:hover  { background: rgba(0,200,232,.06); border-radius: 4px; }
-    [contenteditable]:focus  { background: rgba(0,200,232,.10); border-radius: 4px; box-shadow: 0 0 0 1px var(--accent2); }
-
-    /* ── RESPONSIVE ── */
-    @media (max-width: 640px) {
-      header { padding: 24px 20px; }
-      main   { padding: 28px 16px 60px; }
-      .kpi-value { font-size: 28px; }
-      .progress-section { padding: 20px; }
-      footer { padding: 20px; flex-direction: column; align-items: flex-start; }
-    }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VIBE42 — Adapt. Amplify. Stay Human.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css?v=2">
 </head>
 <body>
 
-<!-- ── HEADER ── -->
-<header>
-  <div class="header-left">
-    <div class="badges">
-      <span class="badge badge-blue">Samruk Business Academy</span>
-      <span class="badge badge-green">Федерация по спортивному программированию</span>
+  <!-- Навигация -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <span class="logo">VIBE<span class="logo-accent">42</span></span>
+      <a href="#apply" class="btn btn-nav">Оставить заявку</a>
     </div>
-    <h1>Еженедельный отчёт<br><span>Обучение вайбкодингу</span></h1>
-    <div class="header-meta">
-      ПК АО «Самрук-Қазына»
-    </div>
-  </div>
-  <div class="header-right">
-    <div class="week-label">Отчётный период</div>
-    <div class="week-range" contenteditable="true">13 — 20 июня 2026</div>
-  </div>
-</header>
+  </nav>
 
-<main>
-
-  <!-- ── KPI ── -->
-  <section>
-    <div class="section-title">Ключевые показатели</div>
-    <div class="kpi-grid">
-
-      <div class="kpi-card highlight">
-        <span class="kpi-icon">👥</span>
-        <div class="kpi-label">Обучено за всё время</div>
-        <div class="kpi-value accent" contenteditable="true">92</div>
-        <div class="kpi-sub">сотрудников ПК Самрук-Қазына</div>
-        <span class="kpi-delta delta-up">▲ 81 за эту неделю</span>
-      </div>
-
-      <div class="kpi-card">
-        <span class="kpi-icon">📅</span>
-        <div class="kpi-label">Обучено за эту неделю</div>
-        <div class="kpi-value" contenteditable="true">81</div>
-        <div class="kpi-sub">участников (16–20 июня)</div>
-        <span class="kpi-delta delta-up">▲ +636% к пред. неделе</span>
-      </div>
-
-      <div class="kpi-card">
-        <span class="kpi-icon">📋</span>
-        <div class="kpi-label">Сессий проведено</div>
-        <div class="kpi-value green" contenteditable="true">8</div>
-        <div class="kpi-sub">с начала программы</div>
-        <span class="kpi-delta delta-up">▲ 7 за эту неделю</span>
-      </div>
-
-      <div class="kpi-card">
-        <span class="kpi-icon">🏫</span>
-        <div class="kpi-label">Активных групп</div>
-        <div class="kpi-value" contenteditable="true">2</div>
-        <div class="kpi-sub">SBA + SBA Корп. Университет</div>
-        <span class="kpi-delta delta-up">Обе активны</span>
-      </div>
-
-      <div class="kpi-card">
-        <span class="kpi-icon">👨‍🏫</span>
-        <div class="kpi-label">Тренеров задействовано</div>
-        <div class="kpi-value accent" contenteditable="true">7</div>
-        <div class="kpi-sub">коучей и инженеров</div>
-        <span class="kpi-delta delta-up">За эту неделю</span>
-      </div>
-
-      <div class="kpi-card">
-        <span class="kpi-icon">📍</span>
-        <div class="kpi-label">Город проведения</div>
-        <div class="kpi-value" style="font-size:24px" contenteditable="true">Астана</div>
-        <div class="kpi-sub">Корпоративный Университет и офисы</div>
-        <span class="kpi-delta delta-up">Все сессии</span>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ── PROGRESS ── -->
-  <section>
-    <div class="section-title">Прогресс к плану</div>
-    <div class="progress-section">
-      <div class="progress-header">
-        <div class="progress-title">Выполнение плана обучения по SBA</div>
-        <div class="progress-vals"><b contenteditable="true">68</b> / <span contenteditable="true">200</span> сотрудников</div>
-      </div>
-      <div class="bar-track">
-        <div class="bar-fill" id="mainBar" style="width: 34%"></div>
-      </div>
-      <div class="progress-foot">
-        <span>0</span>
-        <span style="color: var(--accent); font-weight: 600;">34% выполнено</span>
-        <span>200</span>
+  <!-- Герой -->
+  <section class="hero">
+    <div class="hero-inner">
+      <div class="hero-badge">Движение адаптации человека к эпохе ИИ</div>
+      <div class="hero-title">VIBE<span>42</span></div>
+      <h1>Adapt. Amplify.<br>Stay Human.</h1>
+      <p class="hero-sub">Адаптируйся. Усиливай себя. Оставайся человеком.<br>ИИ должен усиливать тебя — а не заменять.</p>
+      <a href="#apply" class="btn btn-hero">Оставить заявку</a>
+      <div class="hero-stats">
+        <div class="stat">
+          <span class="stat-num">1 день</span>
+          <span class="stat-label">продолжительность</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-num">Офлайн</span>
+          <span class="stat-label">формат</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat">
+          <span class="stat-num">6–8 ч</span>
+          <span class="stat-label">интенсив</span>
+        </div>
       </div>
     </div>
   </section>
 
-  <!-- ── COHORTS ── -->
-  <section>
-    <div class="section-title">Активные группы</div>
-    <div class="cohort-grid">
+  <!-- Главная идея -->
+  <section class="section section-dark" id="idea">
+    <div class="container">
+      <div class="idea-grid">
+        <div class="idea-block">
+          <div class="idea-icon">⚡</div>
+          <h3>Адаптируйся</h3>
+          <p>Понимай мир, который возникает вокруг нас. ИИ — это не угроза и не волшебная палочка. Это новая сила.</p>
+        </div>
+        <div class="idea-block">
+          <div class="idea-icon">🚀</div>
+          <h3>Усиливай себя</h3>
+          <p>Используй ИИ для роста своих способностей. Будущее принадлежит AI-native людям — тем, кто создаёт вместе с ИИ.</p>
+        </div>
+        <div class="idea-block">
+          <div class="idea-icon">🧠</div>
+          <h3>Оставайся человеком</h3>
+          <p>Сохраняй самостоятельное мышление, resilience и человечность. Технологии усиливают тебя, но не заменяют.</p>
+        </div>
+      </div>
+    </div>
+  </section>
 
-      <div class="cohort-card">
-        <div class="cohort-head">
-          <div>
-            <div class="cohort-name" contenteditable="true">SBA — основная группа</div>
-            <div class="cohort-dates" contenteditable="true">13 июня — идёт</div>
+  <!-- Для кого -->
+  <section class="section" id="for-whom">
+    <div class="container">
+      <h2 class="section-title">Для кого Vibe42</h2>
+      <p class="section-sub">Большинство образовательных систем созданы для индустриальной эпохи. Vibe42 — для эпохи ИИ.</p>
+      <div class="cards">
+        <div class="card">
+          <div class="card-icon">💼</div>
+          <h3>Предприниматели</h3>
+          <p>Хотите запускать AI-native продукты, тестировать идеи быстро и строить бизнес в новую эпоху</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🎯</div>
+          <h3>Руководители</h3>
+          <p>Хотите вести команды в условиях неопределённости, понимать ИИ и принимать решения быстрее</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🎨</div>
+          <h3>Креативщики</h3>
+          <p>Хотите создавать с помощью ИИ — не теряя своей уникальности, голоса и человечности</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">✨</div>
+          <h3>Все, кто хочет эволюционировать</h3>
+          <p>Кто понимает: эпоха ИИ уже наступила — и хочет адаптироваться, а не оказаться позади</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Программа -->
+  <section class="section section-gray" id="program">
+    <div class="container">
+      <h2 class="section-title">Программа интенсива</h2>
+      <p class="section-sub">Практическая адаптация к эпохе ИИ за один день</p>
+      <div class="modules">
+        <div class="module">
+          <span class="module-num">01</span>
+          <div class="module-body">
+            <h3>Vibe Coding</h3>
+            <p>Создавай рабочие продукты с помощью ИИ без глубоких знаний программирования</p>
           </div>
-          <span class="pill pill-green">Идёт</span>
         </div>
-        <div class="cohort-stats">
-          <div class="cs-item"><span class="cs-val" contenteditable="true">48</span><span class="cs-lab">участников</span></div>
-          <div class="cs-item"><span class="cs-val" contenteditable="true">5</span><span class="cs-lab">сессий</span></div>
-          <div class="cs-item"><span class="cs-val" contenteditable="true">Анар, Галия</span><span class="cs-lab">тренеры</span></div>
-        </div>
-        <div class="mini-bar-track"><div class="mini-bar-fill" style="width:60%"></div></div>
-      </div>
-
-      <div class="cohort-card">
-        <div class="cohort-head">
-          <div>
-            <div class="cohort-name" contenteditable="true">SBA — Корп. Университет</div>
-            <div class="cohort-dates" contenteditable="true">17 июня — идёт</div>
+        <div class="module">
+          <span class="module-num">02</span>
+          <div class="module-body">
+            <h3>AI Literacy</h3>
+            <p>Понимай, как работает ИИ, как правильно с ним взаимодействовать и где его границы</p>
           </div>
-          <span class="pill pill-blue">Идёт</span>
         </div>
-        <div class="cohort-stats">
-          <div class="cs-item"><span class="cs-val" contenteditable="true">20</span><span class="cs-lab">участников</span></div>
-          <div class="cs-item"><span class="cs-val" contenteditable="true">2</span><span class="cs-lab">сессии</span></div>
-          <div class="cs-item"><span class="cs-val" contenteditable="true">Жанна</span><span class="cs-lab">тренер</span></div>
+        <div class="module">
+          <span class="module-num">03</span>
+          <div class="module-body">
+            <h3>AI Agents</h3>
+            <p>Строй автономных агентов, которые работают на тебя — автоматизируй рутину</p>
+          </div>
         </div>
-        <div class="mini-bar-track"><div class="mini-bar-fill" style="width:30%"></div></div>
+        <div class="module">
+          <span class="module-num">04</span>
+          <div class="module-body">
+            <h3>Automation</h3>
+            <p>Настрой рабочие процессы, которые экономят часы каждый день</p>
+          </div>
+        </div>
+        <div class="module">
+          <span class="module-num">05</span>
+          <div class="module-body">
+            <h3>AI-native Entrepreneurship</h3>
+            <p>Превратись из пассивного потребителя ИИ в активного создателя — запусти свой проект</p>
+          </div>
+        </div>
       </div>
-
     </div>
   </section>
 
-  <!-- ── SESSIONS TABLE ── -->
-  <section>
-    <div class="section-title">Сессии по дням</div>
-    <p style="font-size:12px;color:var(--muted);margin-bottom:12px;">Нажмите на строку, чтобы увидеть список участников</p>
-    <div class="table-wrap">
-      <table>
-        <thead>
-          <tr>
-            <th>Дата</th>
-            <th>Группа</th>
-            <th>Участников</th>
-            <th>Тренеры / Инженеры</th>
-            <th>Статус</th>
-          </tr>
-        </thead>
-        <tbody>
-          <!-- НЕДЕЛЯ 1 -->
-          <tr>
-            <td colspan="5" style="padding:10px 20px 6px;background:var(--bg2);border-bottom:1px solid var(--border)">
-              <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)">Неделя 1</span>
-              <span style="font-size:11px;color:var(--gray);margin-left:10px">9 — 13 июня</span>
-              <span style="float:right;font-size:11px;font-weight:600;color:var(--accent)">11 участников · 1 сессия</span>
-            </td>
-          </tr>
-          <tr class="clickable-row" data-session="13.06" style="cursor:pointer">
-            <td class="td-muted">13 июня</td>
-            <td><div class="td-company">SBA (Корп. Университет)</div></td>
-            <td><b>11</b></td>
-            <td class="td-muted">Анар У., Даурен Е., Олжас М.</td>
-            <td><span class="pill pill-green">✓ Проведена</span></td>
-          </tr>
+  <!-- Форма заявки -->
+  <section class="section" id="apply">
+    <div class="container container-narrow">
+      <h2 class="section-title">Записаться на интенсив</h2>
+      <p class="section-sub">Оставьте заявку — свяжемся в течение 24 часов и ответим на все вопросы</p>
+      <form class="form" id="applyForm">
+        <div class="form-row">
+          <input type="text" name="name" placeholder="Ваше имя" required>
+          <input type="tel" name="phone" placeholder="Номер телефона" required>
+        </div>
+        <input type="email" name="email" placeholder="Email (необязательно)">
+        <textarea name="message" placeholder="Вопрос или комментарий (необязательно)" rows="3"></textarea>
+        <button type="submit" class="btn btn-form">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" style="vertical-align:middle;margin-right:6px"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413Z"/></svg>
+          Отправить в WhatsApp
+        </button>
+        <p class="form-note">Нажимая кнопку, вы соглашаетесь на обработку персональных данных</p>
+      </form>
 
-          <!-- НЕДЕЛЯ 2 -->
-          <tr>
-            <td colspan="5" style="padding:10px 20px 6px;background:var(--bg2);border-bottom:1px solid var(--border);border-top:2px solid var(--border)">
-              <span style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)">Неделя 2</span>
-              <span style="font-size:11px;color:var(--gray);margin-left:10px">16 — 20 июня</span>
-              <span style="float:right;font-size:11px;font-weight:600;color:var(--accent)">81 участник · 6 сессий</span>
-            </td>
-          </tr>
-          <tr class="clickable-row" data-session="16.06" style="cursor:pointer">
-            <td class="td-muted">16 июня</td>
-            <td><div class="td-company">SBA</div></td>
-            <td><b>11</b></td>
-            <td class="td-muted">Анар У., Даурен М., Олжас М.</td>
-            <td><span class="pill pill-green">✓ Проведена</span></td>
-          </tr>
-          <tr class="clickable-row" data-session="17.06" style="cursor:pointer">
-            <td class="td-muted">17 июня</td>
-            <td><div class="td-company">SBA</div></td>
-            <td><b>20</b></td>
-            <td class="td-muted">Галия, Даурен Е., Олжас М.</td>
-            <td><span class="pill pill-green">✓ Проведена</span></td>
-          </tr>
-          <tr class="clickable-row" data-session="17.06b" style="cursor:pointer">
-            <td class="td-muted">17 июня</td>
-            <td><div class="td-company">SBA КУ (Казахтелеком)</div></td>
-            <td><b>20</b></td>
-            <td class="td-muted">Жанна И., Аргын Ж.</td>
-            <td><span class="pill pill-green">✓ Проведена</span></td>
-          </tr>
-          <tr class="clickable-row" data-session="18.06" style="cursor:pointer">
-            <td class="td-muted">18 июня</td>
-            <td><div class="td-company">SBA</div></td>
-            <td><b>6</b></td>
-            <td class="td-muted">Галия, Олжас М.</td>
-            <td><span class="pill pill-green">✓ Проведена</span></td>
-          </tr>
-          <tr class="clickable-row" data-session="19.06" style="cursor:pointer">
-            <td class="td-muted">19 июня</td>
-            <td><div class="td-company">SBA — Корп. Университет (Казахтелеком)</div></td>
-            <td><b>20</b></td>
-            <td class="td-muted">Олжас М., Аргын Ж.</td>
-            <td><span class="pill pill-green">✓ Проведена</span></td>
-          </tr>
-          <tr class="clickable-row" data-session="20.06" style="cursor:pointer">
-            <td class="td-muted">20 июня</td>
-            <td><div class="td-company">SBA</div></td>
-            <td><b>4</b></td>
-            <td class="td-muted">Галия, Олжас М.</td>
-            <td><span class="pill pill-green">✓ Проведена</span></td>
-          </tr>
-        </tbody>
-      </table>
+      <!-- Успех -->
+      <div class="success-box" id="successBox" style="display:none">
+        <div class="success-icon">✅</div>
+        <h3>Заявка отправлена!</h3>
+        <p>WhatsApp открылся с вашими данными — просто нажмите «Отправить» в мессенджере. Мы ответим в ближайшее время.</p>
+      </div>
     </div>
   </section>
 
-  <!-- ── MODAL ── -->
-  <div id="modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);backdrop-filter:blur(6px);z-index:1000;overflow-y:auto;padding:40px 16px">
-    <div id="modal-box" style="max-width:700px;margin:0 auto;background:#0F1A2E;border:1px solid #162236;border-radius:20px;overflow:hidden">
-      <div style="padding:24px 28px;border-bottom:1px solid #162236;display:flex;justify-content:space-between;align-items:center">
+  <!-- Футер -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-inner">
         <div>
-          <div style="font-size:11px;text-transform:uppercase;letter-spacing:.1em;color:#8BAABB;margin-bottom:4px">Список участников</div>
-          <div id="modal-title" style="font-size:18px;font-weight:800"></div>
+          <span class="logo">VIBE<span class="logo-accent">42</span></span>
+          <p class="footer-tagline">Adapt. Amplify. Stay Human.</p>
         </div>
-        <button onclick="closeModal()" style="background:rgba(255,255,255,.06);border:1px solid #162236;color:#fff;width:36px;height:36px;border-radius:50%;cursor:pointer;font-size:18px;display:flex;align-items:center;justify-content:center;flex-shrink:0">×</button>
-      </div>
-      <div style="padding:8px 0">
-        <div style="display:grid;grid-template-columns:40px 1fr 1fr 1.4fr;padding:10px 28px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:#546E7A;border-bottom:1px solid #162236">
-          <span>#</span><span>ФИО</span><span>Должность</span><span>Компания</span>
-        </div>
-        <div id="modal-list"></div>
-      </div>
-      <div id="modal-footer" style="padding:16px 28px;border-top:1px solid #162236;font-size:12px;color:#546E7A;text-align:right"></div>
-    </div>
-  </div>
-
-  <!-- ── HIGHLIGHTS ── -->
-  <section>
-    <div class="section-title">Итоги недели</div>
-    <div class="highlights-list">
-
-      <div class="highlight-item">
-        <span class="hi-icon">🚀</span>
-        <div class="hi-text">
-          <b contenteditable="true">Рекордная неделя: 59 участников за 5 рабочих дней</b>
-          <p contenteditable="true">С 16 по 20 июня проведено 6 сессий в двух группах SBA. Это крупнейший охват за одну неделю с начала программы.</p>
-        </div>
-      </div>
-
-      <div class="highlight-item">
-        <span class="hi-icon">🏫</span>
-        <div class="hi-text">
-          <b contenteditable="true">Запущена вторая группа — SBA Корп. Университет</b>
-          <p contenteditable="true">17 июня стартовала группа в Корпоративном Университете. 19 июня прошла вторая сессия с 20 участниками — самая многочисленная за всю неделю.</p>
-        </div>
-      </div>
-
-      <div class="highlight-item note">
-        <span class="hi-icon">👨‍💼</span>
-        <div class="hi-text">
-          <b contenteditable="true">7 специалистов задействованы в программе на этой неделе</b>
-          <p contenteditable="true">Коучи: Анар Утешова, Галия, Жанна Ибраева. Инженеры: Олжас Мукатов, Даурен Есеркепов, Даурен Молдабаев, Аргын Жиенбай.</p>
-        </div>
-      </div>
-
-    </div>
-  </section>
-
-  <!-- ── NEXT STEPS ── -->
-  <section>
-    <div class="section-title">План на следующую неделю</div>
-    <div class="highlights-list">
-      <div class="highlight-item">
-        <span class="hi-icon">📌</span>
-        <div class="hi-text">
-          <b contenteditable="true">Продолжить обе группы SBA</b>
-          <p contenteditable="true">Запланировать следующие сессии для основной группы и группы Корп. Университета.</p>
-        </div>
-      </div>
-      <div class="highlight-item">
-        <span class="hi-icon">📌</span>
-        <div class="hi-text">
-          <b contenteditable="true">Уточнить данные по сессии 17 июня (SBA КУ)</b>
-          <p contenteditable="true">В системе не указано количество участников для сессии в Корп. Университете 17 июня. Необходимо внести данные.</p>
-        </div>
-      </div>
-      <div class="highlight-item">
-        <span class="hi-icon">📌</span>
-        <div class="hi-text">
-          <b contenteditable="true">Подготовить итоговые материалы и обратную связь</b>
-          <p contenteditable="true">Собрать оценки участников, подготовить NPS-опрос для прошедших сессии.</p>
+        <p class="footer-copy">Казахстан · Мырзатай Дана</p>
+        <div class="footer-links">
+          <a href="mailto:danamyrzatay11@gmail.com">danamyrzatay11@gmail.com</a>
+          <a href="https://www.threads.net/@dana_myrzatay" target="_blank" rel="noopener"><svg class="footer-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" fill="currentColor" aria-hidden="true"><path d="M141.537 88.988a66.667 66.667 0 0 0-2.518-1.143c-1.482-27.307-16.403-42.94-41.457-43.1h-.34c-14.986 0-27.449 6.396-35.12 18.036l13.779 9.452c5.73-8.695 14.724-10.548 21.348-10.548h.229c8.249.053 14.474 2.452 18.503 7.129 2.932 3.405 4.893 8.111 5.864 14.05-7.314-1.243-15.224-1.626-23.68-1.14-23.82 1.371-39.134 15.264-38.134 34.568.509 9.792 5.44 18.216 13.873 23.768 7.433 4.652 16.507 6.927 25.963 6.41 12.458-.707 22.231-5.46 29.049-14.132 5.17-6.605 8.445-15.163 9.893-25.93 5.936 3.583 10.336 8.298 12.766 13.966 4.132 9.635 4.373 25.468-8.294 38.151-11.178 11.185-24.56 16.027-44.744 16.167-22.384-.162-39.934-7.398-52.135-21.5C12.507 137.813 6.923 118.842 6.839 96c.084-22.842 5.668-41.813 16.594-56.388C35.634 25.398 53.184 18.162 75.568 18c22.55.163 40.437 7.437 53.188 21.622 6.328 7.049 11.096 15.959 14.24 26.4l16.28-4.482c-3.983-13.66-10.341-25.316-19.024-34.682C124.712 9.585 103.617.195 75.639 0h-.071C47.641.195 26.77 9.614 13.304 27.986 1.433 44.2-4.514 67.016-4.698 96c.184 28.984 6.131 51.8 17.997 67.963C26.77 182.356 47.641 191.804 75.568 192h.071c24.979-.195 42.467-6.763 57.073-21.398 18.656-18.696 18.016-42.098 11.919-56.502-4.328-10.088-13.045-18.395-23.094-23.112Zm-40.24 37.87c-10.427.588-21.263-4.098-21.763-14.189-.366-7.138 5.087-15.116 21.537-16.06 1.882-.108 3.732-.16 5.553-.16 6.3 0 12.194.607 17.516 1.765-1.994 24.983-12.975 28.037-22.843 28.644Z"/></svg>dana_myrzatay</a>
         </div>
       </div>
     </div>
-  </section>
+  </footer>
 
-</main>
-
-<!-- ── FOOTER ── -->
-<footer>
-  <div>
-    <b>Samruk Business Academy</b> &nbsp;·&nbsp; Программа вайбкодинга для ПК Самрук-Қазына
-  </div>
-  <div>
-    Подготовил: <b contenteditable="true">Дана Мырзатай</b> &nbsp;·&nbsp; <span contenteditable="true">20 июня 2026</span>
-  </div>
-</footer>
-
-<script>
-  const PARTICIPANTS = {
-    "13.06": {
-      label: "13 июня 2026 — SBA, Корп. Университет",
-      people: [
-        { name: "Бал***ев Р.Ә.", role: "Зам. Председателя Правления", company: "АО НК «КазМунайГаз»" },
-        { name: "Мол***ов Т.М.", role: "Зам. Председателя Правления", company: "АО НК «КазМунайГаз»" },
-        { name: "Мир***ов Ж.Ж.", role: "Зам. Пред. Правления по экономике и финансам", company: "АО «НК «QazaqGaz»" },
-        { name: "Тур***ин А.Ж.", role: "Зам. Генерального директора", company: "КФ Samruk-Kazyna Trust" },
-        { name: "Абс***ов Н.М.", role: "Председатель Правления", company: "АО НГК «Тау-Кен Самрук»" },
-        { name: "Жум***ов Р.Б.", role: "Гл. директор по экономике и финансам", company: "АО НГК «Тау-Кен Самрук»" },
-        { name: "Идр***ов Д.Е.", role: "Гл. директор по инвестициям и стратегии", company: "АО НГК «Тау-Кен Самрук»" },
-        { name: "Абл***ов Р.М.", role: "Гл. директор по администрированию", company: "АО НГК «Тау-Кен Самрук»" },
-        { name: "Пир***ов С.Б.", role: "Генеральный директор", company: "ТОО Самрук-Казына Инвест" },
-        { name: "Абд***ов Б.Т.", role: "Зам. директора департамента", company: "ЧУ Samruk Business Academy" },
-        { name: "Мау***ов А.М.", role: "Упр. директор по обучению", company: "ЧУ Samruk Business Academy" },
-      ]
-    },
-    "16.06": {
-      label: "16 июня 2026 — SBA",
-      people: [
-        { name: "Жам***ов А.Ж.", role: "Председатель Правления", company: "АО «НК «QazaqGaz»" },
-        { name: "Дау***ов А.Б.", role: "Зам. Пред. по разведке и добыче", company: "АО «НК «QazaqGaz»" },
-        { name: "Тер***ов Б.Е.", role: "Зам. Пред. по капстроительству", company: "АО «НК «QazaqGaz»" },
-        { name: "Мух***ов А.Е.", role: "Упр. директор по правовым вопросам", company: "АО «НК «QazaqGaz»" },
-        { name: "Ерм***ов Б.А.", role: "Руководитель аппарата", company: "АО «НК «QazaqGaz»" },
-        { name: "Акы***ов А.Ж.", role: "Упр. директор по закупкам", company: "АО «НК «QazaqGaz»" },
-        { name: "Айт***ов Н.Е.", role: "Председатель Правления", company: "АО KEGOC" },
-        { name: "Кер***ов Н.Н.", role: "Упр. директор по системным услугам", company: "АО KEGOC" },
-        { name: "Аяп***ов К.М.", role: "Упр. директор по развитию НЭС", company: "АО KEGOC" },
-        { name: "Кур***ов С.К.", role: "Упр. директор по обеспечению", company: "АО KEGOC" },
-        { name: "Иса*** Д.Б.", role: "Руководитель секретариата", company: "АО KEGOC" },
-      ]
-    },
-    "17.06": {
-      label: "17 июня 2026 — SBA + SBA Корп. Университет",
-      people: [
-        { name: "Юсу***ов М.Б.", role: "Председатель Правления", company: "АО «НАК «Казатомпром»" },
-        { name: "Тул***ев М.Д.", role: "Первый зам. Пред. Правления", company: "АО «НАК «Казатомпром»" },
-        { name: "Ома***ов К.А.", role: "Гл. директор по производству", company: "АО «НАК «Казатомпром»" },
-        { name: "Бай***ин В.Е.", role: "Гл. директор по коммерции", company: "АО «НАК «Казатомпром»" },
-        { name: "Кош***ев Д.Е.", role: "Гл. директор по стратегии", company: "АО «НАК «Казатомпром»" },
-        { name: "Саг***ов Д.Т.", role: "Гл. директор по закупкам", company: "АО «НАК «Казатомпром»" },
-        { name: "Сат***ов Б.Б.", role: "Генеральный директор", company: "ТОО «Семизбай-U»" },
-        { name: "Зол*** А.А.", role: "Зам. Гендиректора по производству", company: "ТОО «Семизбай-U»" },
-        { name: "Рам***ов Д.Б.", role: "Генеральный директор", company: "ТОО «KAP Logistics»" },
-        { name: "Ост***ко Ю.И.", role: "Упр. директор по развитию", company: "ТОО «KAP Logistics»" },
-        { name: "Мел***ов Н.А.", role: "Генеральный директор", company: "ТОО «KAP Technology»" },
-        { name: "Мам***ев Г.Б.", role: "Зам. Гендиректора по экономике", company: "ТОО «KAP Technology»" },
-        { name: "Кар***ев Е.Е.", role: "Директор департамента IT", company: "АО «НАК «Казатомпром»" },
-        { name: "Дос***ов Э.Т.", role: "Генеральный директор", company: "ТОО Самрук-Казына Контракт" },
-        { name: "Дос***ва А.Б.", role: "Финансовый директор", company: "ТОО Самрук-Казына Инвест" },
-        { name: "Жаз***ев Б.М.", role: "Зам. Председателя Правления", company: "АО KEGOC" },
-        { name: "Саф***ни Т.Е.", role: "Упр. директор по правовому сопровождению", company: "АО KEGOC" },
-        { name: "Ата***ов Е.Т.", role: "Упр. директор по эксплуатации", company: "АО KEGOC" },
-        { name: "Аки***ва А.Е.", role: "Упр. директор по экономике и финансам", company: "АО KEGOC" },
-        { name: "Кон***ва Э.Б.", role: "Упр. директор по стратегии", company: "АО KEGOC" },
-      ]
-    },
-    "17.06b": {
-      label: "17 июня 2026 — SBA КУ (Казахтелеком, группа 2)",
-      people: [
-        { name: "Кул***ов Ж.", role: "Начальник отдела автоматизации", company: "Казахтелеком — ДТК" },
-        { name: "Мат***ва А.", role: "EX менеджер", company: "Казахтелеком — ДТК" },
-        { name: "Бай***ва М.Б.", role: "Ведущий инженер по обслуживанию оборудования", company: "Казахтелеком — ОДС" },
-        { name: "Кам***ев М.Е.", role: "И.о. начальника Службы техподдержки", company: "Казахтелеком — ОДС" },
-        { name: "Тоб***ов Н.С.", role: "Главный менеджер Службы техподдержки", company: "Казахтелеком — ОДС" },
-        { name: "Сек***ва Н.К.", role: "Ведущий инженер электросвязи", company: "Казахтелеком — ОДС" },
-        { name: "Сыз***ва Г.Б.", role: "EX-менеджер", company: "Казахтелеком — ОДС" },
-        { name: "Абу***ир Қ.", role: "Ведущий специалист СРП", company: "Казахтелеком — ДУП" },
-        { name: "Тус***ов Е.О.", role: "Менеджер GR", company: "Казахтелеком — ДУП" },
-        { name: "Каи*** Ж.А.", role: "Главный менеджер IoT", company: "Казахтелеком — ДЦБ" },
-        { name: "Сер***ан А.", role: "Главный специалист ЦАП", company: "Казахтелеком — ДРБ" },
-        { name: "Дид***зы К.", role: "Эксперт СИТВ", company: "Казахтелеком — ДРБ" },
-        { name: "Тұр***ек Е.", role: "Эксперт СИТВ", company: "Казахтелеком — ДРБ" },
-        { name: "Абу***ов Т.Б.", role: "Ведущий специалист транспортного отдела", company: "Казахтелеком — СФ" },
-        { name: "Кас***ва А.С.", role: "Специалист ЦПХО", company: "Казахтелеком — СФ" },
-        { name: "Абд***ва А.Б.", role: "Ведущий специалист транспортного отдела", company: "Казахтелеком — СФ" },
-        { name: "Хак***ов Ч.Н.", role: "Менеджер Службы развития сети доступа", company: "Казахтелеком — ДКБ" },
-        { name: "Онд***ва А.Қ.", role: "Бизнес-аналитик", company: "Казахтелеком — ДКБ" },
-        { name: "Сыз***ов А.", role: "Главный специалист сектора маркировки", company: "Казахтелеком — ДТК" },
-        { name: "Ома***ов Е.К.", role: "Главный менеджер Службы развития сети доступа", company: "Казахтелеком — ДКБ" },
-      ]
-    },
-    "18.06": {
-      label: "18 июня 2026 — SBA",
-      people: [
-        { name: "Мау***ов Д.Н.", role: "Председатель Правления", company: "ТОО «Samruk-Kazyna Ondeu»" },
-        { name: "Тай***ва А.З.", role: "Упр. директор по экономике и финансам", company: "ТОО «Samruk-Kazyna Ondeu»" },
-        { name: "Кул***ов С.Т.", role: "Упр. директор по развитию и управлению активами", company: "ТОО «Samruk-Kazyna Ondeu»" },
-        { name: "Бау***зы Ф.", role: "Руководитель правовой службы", company: "ТОО «Samruk-Kazyna Ondeu»" },
-        { name: "Пет***ий Е.В.", role: "Офицер по информационной безопасности", company: "ТОО «Samruk-Kazyna Ondeu»" },
-        { name: "Уму***ев Б.Ж.", role: "Менеджер по искусственному интеллекту", company: "ТОО «Samruk-Kazyna Ondeu»" },
-      ]
-    },
-    "19.06": {
-      label: "19 июня 2026 — SBA Корп. Университет (Казахтелеком)",
-      people: [
-        { name: "Бай***ва Ж.Г.", role: "Главный менеджер", company: "Казахтелеком — ОДС" },
-        { name: "Сем***ев Е.Е.", role: "Начальник Центра оперативного контроля", company: "Казахтелеком — ОДС" },
-        { name: "Нур***ев Е.Т.", role: "Инженер по техническому обслуживанию", company: "Казахтелеком — ОДС" },
-        { name: "Кур***ин А.Б.", role: "Начальник участка", company: "Казахтелеком — ОДС" },
-        { name: "Ауб***ов Е.С.", role: "Руководитель центра", company: "Казахтелеком — ДУП" },
-        { name: "Сәр***ли О.Т.", role: "Бизнес-аналитик", company: "Казахтелеком — ДКБ" },
-        { name: "Жум***ов Е.Е.", role: "Ведущий инженер электросвязи", company: "Казахтелеком — ДКБ" },
-        { name: "Асқ***лы С.", role: "Бизнес-аналитик", company: "Казахтелеком — ДКБ" },
-        { name: "Сул***ва Э.У.", role: "Ведущий инженер", company: "Казахтелеком — ДКБ" },
-        { name: "Мус***на А.С.", role: "EX аналитик", company: "Казахтелеком — СФ" },
-        { name: "Але***ва С.М.", role: "Менеджер по подбору персонала", company: "Казахтелеком — СФ" },
-        { name: "Орл***ий Р.В.", role: "Главный бизнес-аналитик", company: "Казахтелеком — ДРБ" },
-        { name: "Мит***на А.А.", role: "Главный бизнес-аналитик", company: "Казахтелеком — ДРБ" },
-        { name: "Ков***ва С.", role: "И.о. руководителя Службы цифровизации", company: "Казахтелеком — ДЦБ" },
-        { name: "Ими***ов Т.А.", role: "Начальник АХО", company: "Казахтелеком — ДТК" },
-        { name: "Гри***ич Ю.А.", role: "Генеральный директор", company: "Корпоративный Университет" },
-        { name: "Анк***ва А.О.", role: "Руководитель службы сертификации", company: "Корпоративный Университет" },
-        { name: "Иск***ва С.К.", role: "Старший партнер по обучению", company: "Корпоративный Университет" },
-        { name: "Ізт***ва А.Н.", role: "Преподаватель", company: "Корпоративный Университет" },
-        { name: "Осп***ва Р.Д.", role: "Менеджер по внешнему обучению", company: "Корпоративный Университет" },
-      ]
-    },
-    "20.06": {
-      label: "20 июня 2026 — SBA",
-      people: [
-        { name: "Кис***ов А.Ж.", role: "Зам. Председателя Правления по производству", company: "АО «НК «QazaqGaz»" },
-        { name: "Тул***ов А.М.", role: "Первый зам. Председателя Правления", company: "АО «НК «QazaqGaz»" },
-        { name: "Шар***ов Н.С.", role: "Зам. генерального директора", company: "ТОО «Самрук-Казына Контракт»" },
-        { name: "Чуж***ов А.А.", role: "Зам. генерального директора", company: "ТОО «Самрук-Казына Контракт»" },
-      ]
-    }
-  };
-
-  function openModal(sessionKey) {
-    const session = PARTICIPANTS[sessionKey];
-    if (!session) return;
-    document.getElementById('modal-title').textContent = session.label;
-    const list = document.getElementById('modal-list');
-    list.innerHTML = session.people.map((p, i) => `
-      <div style="display:grid;grid-template-columns:40px 1fr 1fr 1.4fr;padding:12px 28px;border-bottom:1px solid #0D1628;font-size:13px;transition:background .15s" onmouseover="this.style.background='rgba(0,200,232,.04)'" onmouseout="this.style.background=''">
-        <span style="color:#546E7A;font-size:12px">${i + 1}</span>
-        <span style="font-weight:600;color:#fff">${p.name}</span>
-        <span style="color:#8BAABB;font-size:12px">${p.role}</span>
-        <span style="color:#00C8E8;font-size:12px">${p.company}</span>
-      </div>
-    `).join('');
-    document.getElementById('modal-footer').textContent = `Всего участников: ${session.people.length}`;
-    document.getElementById('modal-overlay').style.display = 'block';
-    document.body.style.overflow = 'hidden';
-  }
-
-  function closeModal() {
-    document.getElementById('modal-overlay').style.display = 'none';
-    document.body.style.overflow = '';
-  }
-
-  document.getElementById('modal-overlay').addEventListener('click', function(e) {
-    if (e.target === this) closeModal();
-  });
-
-  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
-
-  document.querySelectorAll('.clickable-row').forEach(row => {
-    row.addEventListener('click', () => openModal(row.dataset.session));
-    row.addEventListener('mouseenter', () => row.style.background = 'rgba(0,200,232,.08)');
-    row.addEventListener('mouseleave', () => row.style.background = '');
-  });
-</script>
-
+  <script src="script.js?v=3"></script>
 </body>
 </html>
