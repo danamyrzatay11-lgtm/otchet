@@ -70,19 +70,32 @@
 
   .pax-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:8px; margin-bottom:14px; }
   .pax-card {
-    background:white; border-radius:8px; padding:9px 12px;
+    background:white; border-radius:8px; padding:8px 10px;
     display:flex; align-items:center; justify-content:space-between;
-    border:1px solid #e2e8f0; font-size:0.82rem;
+    border:1px solid #e2e8f0; gap:8px;
   }
   .pax-card.kmg-card { border-color:#90cdf4; background:#ebf8ff; }
-  .pax-info { display:flex; flex-direction:column; gap:2px; flex:1; min-width:0; }
-  .pax-name { font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .pax-company { color:#718096; font-size:0.75rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .pax-rate { font-weight:700; color:#276749; white-space:nowrap; margin-left:10px; }
+  .pax-info { display:flex; flex-direction:column; gap:4px; flex:1; min-width:0; }
+  .pax-num { font-size:0.68rem; color:#a0aec0; font-weight:600; margin-bottom:1px; }
+  .pax-input {
+    width:100%; border:none; background:transparent; font-family:inherit;
+    font-size:0.83rem; padding:0; outline:none; color:#1a202c;
+  }
+  .pax-input.name-input { font-weight:700; }
+  .pax-input.comp-input { color:#718096; font-size:0.76rem; }
+  .pax-input::placeholder { color:#cbd5e0; }
+  .pax-input:focus { background:#f7fafc; border-radius:3px; padding:1px 3px; margin:-1px -3px; }
+  .pax-kmg-badge { font-size:0.68rem; color:#2b6cb0; font-weight:700; }
+  .pax-right { display:flex; align-items:center; gap:4px; flex-shrink:0; }
+  .pax-rate { font-weight:700; color:#276749; white-space:nowrap; font-size:0.82rem; }
   .pax-rate.kmg-rate { color:#2b6cb0; }
-  .btn-del-pax { background:none; border:none; color:#fc8181; font-size:0.9rem; cursor:pointer;
-    padding:2px 6px; border-radius:4px; margin-left:6px; }
-  .btn-del-pax:hover { background:#fff5f5; }
+  .pax-kmg-toggle {
+    width:14px; height:14px; cursor:pointer; accent-color:#3182ce; flex-shrink:0;
+    title:"КМГ";
+  }
+  .btn-del-pax { background:none; border:none; color:#e2e8f0; font-size:0.85rem; cursor:pointer;
+    padding:2px 5px; border-radius:4px; transition:color 0.15s; flex-shrink:0; }
+  .btn-del-pax:hover { color:#fc8181; background:#fff5f5; }
 
   .pax-empty { color:#a0aec0; font-size:0.82rem; font-style:italic; padding:6px 0; }
 
@@ -331,46 +344,64 @@ function buildPanel(s) {
   const n    = s.participants.length;
   const rate = getRate(n);
 
+  const compOpts = s.companies.map(c => `<option value="${esc(c)}">`).join('');
+
   let cards = '';
   if (n === 0) {
     cards = '<p class="pax-empty">Участники ещё не добавлены — используйте форму ниже.</p>';
   } else {
     cards = '<div class="pax-grid">' +
-      s.participants.map((p,i) => {
-        const r    = p.kmg ? 100000 : rate;
-        const name = p.name || `Участник ${i+1}`;
+      s.participants.map((p, i) => {
+        const r = p.kmg ? 100000 : rate;
         return `
-          <div class="pax-card${p.kmg?' kmg-card':''}">
+          <div class="pax-card${p.kmg ? ' kmg-card' : ''}">
             <div class="pax-info">
-              <div class="pax-name">${esc(name)}</div>
-              <div class="pax-company">${esc(p.company)}${p.kmg?' · ★ КМГ':''}</div>
+              <div class="pax-num"># ${i + 1}</div>
+              <input class="pax-input name-input"
+                type="text"
+                placeholder="ФИО"
+                value="${esc(p.name)}"
+                onchange="updatePax(${s.id},${i},'name',this.value)"
+                onclick="stopProp(event)">
+              <input class="pax-input comp-input"
+                type="text"
+                list="comp-list-${s.id}"
+                placeholder="Место работы"
+                value="${esc(p.company)}"
+                onchange="updatePax(${s.id},${i},'company',this.value)"
+                onclick="stopProp(event)">
             </div>
-            <div class="pax-rate${p.kmg?' kmg-rate':''}">${fmt(r)}</div>
-            <button class="btn-del-pax" onclick="delParticipant(event,${s.id},${i})">✕</button>
+            <div class="pax-right">
+              <div class="pax-rate${p.kmg ? ' kmg-rate' : ''}">${fmt(r)}</div>
+              <input type="checkbox" class="pax-kmg-toggle" title="КМГ"
+                ${p.kmg ? 'checked' : ''}
+                onchange="updatePax(${s.id},${i},'kmg',this.checked)"
+                onclick="stopProp(event)">
+              <button class="btn-del-pax" onclick="delParticipant(event,${s.id},${i})">✕</button>
+            </div>
           </div>`;
-      }).join('') + '</div>';
+      }).join('') + `</datalist></div>`;
   }
 
-  // company options
   const opts = s.companies.map(c =>
-    `<option value="${esc(c)}" ${isKMG(c)?'data-kmg=1':''}>${esc(c)}</option>`
+    `<option value="${esc(c)}">`
   ).join('');
 
   return `
+    <datalist id="comp-list-${s.id}">${opts}</datalist>
     ${cards}
     <div class="add-pax-form" onclick="stopProp(event)">
       <div class="field">
-        <label>Имя</label>
+        <label>ФИО</label>
         <input type="text" id="pname-${s.id}" placeholder="Алия Сейткали">
       </div>
       <div class="field">
-        <label>Компания</label>
+        <label>Место работы</label>
         <input type="text" id="pcomp-${s.id}" list="comp-list-${s.id}"
-          placeholder="${esc(s.companies[0]||'')}" value="${esc(s.companies[0]||'')}">
-        <datalist id="comp-list-${s.id}">${opts}</datalist>
+          placeholder="${esc(s.companies[0] || '')}" value="${esc(s.companies[0] || '')}">
       </div>
       <label class="kmg-check">
-        <input type="checkbox" id="pkmg-${s.id}" ${isKMG(s.companies[0]||'')?'checked':''}>
+        <input type="checkbox" id="pkmg-${s.id}" ${isKMG(s.companies[0] || '') ? 'checked' : ''}>
         КМГ
       </label>
       <button class="btn-sm" onclick="addParticipant(event,${s.id})">+ Добавить</button>
@@ -404,6 +435,29 @@ function addParticipant(e, sid) {
   const kmg  = document.getElementById(`pkmg-${sid}`).checked;
   s.participants.push({name, company: comp, kmg: kmg || isKMG(comp)});
   render();
+}
+
+function updatePax(sid, idx, field, value) {
+  const s = sessions.find(x => x.id === sid);
+  if (!s) return;
+  s.participants[idx][field] = value;
+  if (field === 'company') s.participants[idx].kmg = isKMG(value);
+  // re-render only totals/rates without collapsing the panel
+  renderTotals();
+  // update card styling for kmg
+  if (field === 'company' || field === 'kmg') render();
+}
+
+function renderTotals() {
+  let totalPax = 0, totalIncome = 0;
+  sessions.forEach(s => {
+    totalPax += s.participants.length;
+    totalIncome += sessionIncome(s);
+  });
+  document.getElementById('total-pax').textContent = totalPax + ' чел.';
+  const g = fmt(totalIncome);
+  document.getElementById('grand-total').textContent = g;
+  document.getElementById('grand-total-header').textContent = g;
 }
 
 function delParticipant(e, sid, idx) {
