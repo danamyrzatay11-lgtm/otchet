@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Калькулятор дохода — Vaibu Training</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #1a202c; min-height: 100vh; }
+
+  header {
+    background: linear-gradient(135deg, #1a365d 0%, #2b6cb0 100%);
+    color: white; padding: 24px 32px;
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  header h1 { font-size: 1.4rem; font-weight: 700; }
+  header p  { font-size: 0.82rem; opacity: 0.75; margin-top: 3px; }
+  .total-badge { background: rgba(255,255,255,0.15); border-radius: 12px; padding: 10px 18px; text-align: right; }
+  .total-badge .lbl { font-size: 0.72rem; opacity: 0.8; }
+  .total-badge .amt { font-size: 1.5rem; font-weight: 800; }
+
+  main { max-width: 1060px; margin: 0 auto; padding: 24px 18px; }
+
+  .legend { display: flex; gap: 10px; margin-bottom: 18px; flex-wrap: wrap; }
+  .pill { padding: 5px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; }
+  .p-red   { background:#fff5f5; color:#c53030; border:1px solid #feb2b2; }
+  .p-amber { background:#fffaf0; color:#c05621; border:1px solid #fbd38d; }
+  .p-green { background:#f0fff4; color:#276749; border:1px solid #9ae6b4; }
+  .p-blue  { background:#ebf8ff; color:#2b6cb0; border:1px solid #90cdf4; }
+
+  .sec-title {
+    font-size: 0.95rem; font-weight: 700; color: #2d3748;
+    margin: 22px 0 12px; display: flex; align-items: center; gap: 8px;
+  }
+  .sec-title::before { content:''; display:inline-block; width:4px; height:16px; background:#3182ce; border-radius:2px; }
+
+  /* Sessions table */
+  .sessions { width:100%; border-collapse:collapse; background:white;
+    border-radius:12px; overflow:hidden; box-shadow:0 1px 6px rgba(0,0,0,0.08); }
+  .sessions thead { background:#2d3748; color:white; }
+  .sessions th { padding:11px 14px; text-align:left; font-size:0.75rem; font-weight:600;
+    text-transform:uppercase; letter-spacing:0.05em; }
+  .session-row td { padding:10px 14px; font-size:0.84rem; border-bottom:1px solid #edf2f7;
+    vertical-align:middle; }
+  .session-row:hover td { background:#f7fafc; }
+  .session-row { cursor:pointer; }
+  .session-row.open td { background:#ebf8ff !important; border-bottom:none; }
+
+  .chevron { display:inline-block; transition:transform 0.2s; font-size:0.7rem; margin-right:6px; color:#a0aec0; }
+  .open .chevron { transform:rotate(90deg); }
+
+  .date-cell { font-weight:700; white-space:nowrap; }
+  .week-tag { display:inline-block; padding:2px 7px; border-radius:10px; font-size:0.68rem; font-weight:700; margin-left:5px; }
+  .w1{background:#e9d8fd;color:#6b46c1;} .w2{background:#bee3f8;color:#2b6cb0;} .w3{background:#c6f6d5;color:#276749;}
+  .companies-cell { color:#4a5568; }
+  .tag { display:inline-block; border-radius:6px; font-size:0.7rem; padding:1px 6px; margin:1px; }
+  .tag-kmg  { background:#ebf8ff; color:#2b6cb0; border:1px solid #90cdf4; font-weight:700; }
+  .tag-other{ background:#f7fafc; color:#718096; border:1px solid #e2e8f0; }
+  .income-cell { font-weight:700; color:#276749; white-space:nowrap; }
+  .rate-hint  { font-size:0.75rem; color:#a0aec0; }
+  .pax-count  { font-weight:700; }
+
+  /* Expanded participants panel */
+  .expand-row td { padding:0; border-bottom:2px solid #bee3f8; }
+  .expand-panel {
+    background:#f0f8ff; padding:16px 20px 18px;
+    display:none;
+  }
+  .expand-panel.visible { display:block; }
+
+  .pax-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(260px,1fr)); gap:8px; margin-bottom:14px; }
+  .pax-card {
+    background:white; border-radius:8px; padding:9px 12px;
+    display:flex; align-items:center; justify-content:space-between;
+    border:1px solid #e2e8f0; font-size:0.82rem;
+  }
+  .pax-card.kmg-card { border-color:#90cdf4; background:#ebf8ff; }
+  .pax-info { display:flex; flex-direction:column; gap:2px; flex:1; min-width:0; }
+  .pax-name { font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .pax-company { color:#718096; font-size:0.75rem; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .pax-rate { font-weight:700; color:#276749; white-space:nowrap; margin-left:10px; }
+  .pax-rate.kmg-rate { color:#2b6cb0; }
+  .btn-del-pax { background:none; border:none; color:#fc8181; font-size:0.9rem; cursor:pointer;
+    padding:2px 6px; border-radius:4px; margin-left:6px; }
+  .btn-del-pax:hover { background:#fff5f5; }
+
+  .pax-empty { color:#a0aec0; font-size:0.82rem; font-style:italic; padding:6px 0; }
+
+  /* Add participant mini-form */
+  .add-pax-form {
+    display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap;
+    border-top:1px solid #bee3f8; padding-top:12px; margin-top:4px;
+  }
+  .add-pax-form .field { display:flex; flex-direction:column; gap:3px; }
+  .add-pax-form label { font-size:0.72rem; font-weight:600; color:#4a5568; }
+  .add-pax-form input[type=text] {
+    padding:6px 9px; border:1.5px solid #cbd5e0; border-radius:6px; font-size:0.82rem; width:180px;
+  }
+  .add-pax-form input:focus { outline:none; border-color:#3182ce; }
+  .kmg-check { display:flex; align-items:center; gap:5px; font-size:0.8rem; color:#2b6cb0;
+    font-weight:600; padding-bottom:7px; }
+  .kmg-check input { width:15px; height:15px; cursor:pointer; accent-color:#3182ce; }
+  .btn-sm { background:#3182ce; color:white; border:none; padding:7px 14px;
+    border-radius:6px; font-size:0.8rem; font-weight:600; cursor:pointer; white-space:nowrap; }
+  .btn-sm:hover { background:#2b6cb0; }
+
+  /* Add session form */
+  .add-section { background:white; border-radius:12px; padding:18px 22px;
+    box-shadow:0 1px 6px rgba(0,0,0,0.08); }
+  .add-form { display:grid; grid-template-columns:140px 1fr auto; gap:10px; align-items:end; }
+  .add-form label { font-size:0.75rem; font-weight:600; color:#4a5568; display:block; margin-bottom:4px; }
+  .add-form input[type=text], .add-form input[type=date] {
+    width:100%; padding:7px 10px; border:1.5px solid #cbd5e0; border-radius:6px; font-size:0.84rem;
+  }
+  .add-form input:focus { outline:none; border-color:#3182ce; }
+  .btn-add { background:#3182ce; color:white; border:none; padding:8px 18px;
+    border-radius:6px; font-size:0.84rem; font-weight:600; cursor:pointer; }
+  .btn-add:hover { background:#2b6cb0; }
+
+  tfoot td { background:#f7fafc; font-weight:700; }
+  .grand-total { font-size:1rem; color:#2b6cb0; }
+  .btn-del-session { background:none; border:none; color:#e2e8f0; font-size:0.9rem;
+    cursor:pointer; padding:3px 7px; border-radius:4px; transition:color 0.15s; }
+  .btn-del-session:hover { color:#fc8181; background:#fff5f5; }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Калькулятор дохода</h1>
+    <p>Vaibu Corporate Training · Астана, 2026</p>
+  </div>
+  <div class="total-badge">
+    <div class="lbl">Итого доход</div>
+    <div class="amt" id="grand-total-header">—</div>
+  </div>
+</header>
+
+<main>
+
+  <div class="legend">
+    <span class="pill p-red">1–3 чел. = 400 000 ₸</span>
+    <span class="pill p-amber">4–19 чел. = 200 000 ₸</span>
+    <span class="pill p-green">20+ чел. = 100 000 ₸</span>
+    <span class="pill p-blue">★ КазМунайГаз = 100 000 ₸ всегда</span>
+  </div>
+
+  <div class="sec-title">Сессии — нажмите на строку, чтобы открыть список участников</div>
+
+  <table class="sessions" id="sessions-table">
+    <thead>
+      <tr>
+        <th style="width:26px"></th>
+        <th>Дата</th>
+        <th>Компании</th>
+        <th>Участников</th>
+        <th>Тариф</th>
+        <th>Доход</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+    <tfoot>
+      <tr>
+        <td colspan="3" style="font-size:0.82rem;color:#718096;padding:10px 14px;">Итого</td>
+        <td id="total-pax" style="padding:10px 14px;"></td>
+        <td></td>
+        <td class="income-cell grand-total" id="grand-total" style="padding:10px 14px;">—</td>
+        <td></td>
+      </tr>
+    </tfoot>
+  </table>
+
+  <div class="sec-title">Добавить сессию</div>
+
+  <div class="add-section">
+    <div class="add-form">
+      <div>
+        <label>Дата</label>
+        <input type="date" id="new-date" value="2026-06-26">
+      </div>
+      <div>
+        <label>Компании (через запятую)</label>
+        <input type="text" id="new-companies" placeholder="Казатомпром, KEGOC">
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <button class="btn-add" onclick="addSession()">+ Добавить сессию</button>
+      </div>
+    </div>
+  </div>
+
+</main>
+
+<script>
+// ─── helpers ────────────────────────────────────────────────────────────────
+
+const KMG_KEYWORDS = ['казмунайгаз', 'kmg', 'кмг'];
+function isKMG(str) {
+  const l = (str || '').toLowerCase();
+  return KMG_KEYWORDS.some(k => l.includes(k));
+}
+function getRate(groupSize) {
+  if (groupSize <= 3)  return 400000;
+  if (groupSize <= 19) return 200000;
+  return 100000;
+}
+function fmt(n) { return n.toLocaleString('ru-RU') + ' ₸'; }
+function fmtDate(d) {
+  const [y,m,day] = d.split('-');
+  const M = ['','янв','фев','мар','апр','май','июн','июл','авг','сен','окт','ноя','дек'];
+  return `${parseInt(day)} ${M[parseInt(m)]}`;
+}
+const WEEKS = [
+  {label:'Нед.1', cls:'w1', from:'2026-06-08', to:'2026-06-14'},
+  {label:'Нед.2', cls:'w2', from:'2026-06-15', to:'2026-06-21'},
+  {label:'Нед.3', cls:'w3', from:'2026-06-22', to:'2026-06-28'},
+];
+function weekTag(d) {
+  for (const w of WEEKS) if (d >= w.from && d <= w.to)
+    return `<span class="week-tag ${w.cls}">${w.label}</span>`;
+  return '';
+}
+
+// ─── data ────────────────────────────────────────────────────────────────────
+
+let sessions = [
+  { id:1, date:'2026-06-13', companies:['КазМунайГаз','QazaqGaz','Тау-Кен Самрук','СК Инвест'],
+    participants:[
+      {name:'', company:'КазМунайГаз', kmg:true},
+      {name:'', company:'QazaqGaz',     kmg:false},
+      {name:'', company:'Тау-Кен Самрук',kmg:false},
+    ]
+  },
+  { id:2, date:'2026-06-16', companies:['QazaqGaz','KEGOC'], participants:[] },
+  { id:3, date:'2026-06-17', companies:['Казатомпром','Семизбай-U','KAP Logistics','KAP Technology','СК Контракт','СК Инвест','KEGOC'], participants:[] },
+  { id:4, date:'2026-06-17', companies:['Казахтелеком'], participants:[] },
+  { id:5, date:'2026-06-18', companies:['Samruk-Kazyna Ondeu'], participants:[] },
+  { id:6, date:'2026-06-19', companies:['Казахтелеком'], participants:[] },
+  { id:7, date:'2026-06-20', companies:['QazaqGaz','СК Контракт'], participants:[] },
+  { id:8, date:'2026-06-23', companies:['Самрук-Энерго'], participants:[] },
+  { id:9, date:'2026-06-25', companies:['Самрук-Қазына','Казпочта','Самрук-Энерго','KEGOC','СК Инвест','SK Trust','ЦСВК'], participants:[] },
+];
+
+// seed participant counts from the known totals
+const KNOWN_TOTALS = {1:9, 2:11, 3:20, 4:20, 5:6, 6:20, 7:4, 8:9, 9:20};
+sessions.forEach(s => {
+  const need = KNOWN_TOTALS[s.id] || 0;
+  while (s.participants.length < need)
+    s.participants.push({name:'', company: s.companies[0] || '', kmg: isKMG(s.companies[0] || '')});
+});
+
+let nextId = 10;
+let openId = null;
+
+// ─── calc ────────────────────────────────────────────────────────────────────
+
+function sessionIncome(s) {
+  const total = s.participants.length;
+  const rate  = getRate(total);
+  return s.participants.reduce((sum, p) => sum + (p.kmg ? 100000 : rate), 0);
+}
+
+// ─── render ──────────────────────────────────────────────────────────────────
+
+function render() {
+  const tbody = document.getElementById('tbody');
+  tbody.innerHTML = '';
+
+  let totalPax = 0, totalIncome = 0;
+
+  sessions.forEach(s => {
+    const n      = s.participants.length;
+    const income = sessionIncome(s);
+    const rate   = getRate(n);
+    totalPax    += n;
+    totalIncome += income;
+
+    const isOpen = openId === s.id;
+
+    const companyTags = s.companies.map(c =>
+      `<span class="tag ${isKMG(c)?'tag-kmg':'tag-other'}">${isKMG(c)?'★ ':''}${c}</span>`
+    ).join(' ');
+
+    const kmgCount    = s.participants.filter(p=>p.kmg).length;
+    const nonKmgCount = n - kmgCount;
+    let rateParts = [];
+    if (kmgCount > 0)    rateParts.push(`${kmgCount}×100k`);
+    if (nonKmgCount > 0) rateParts.push(`${nonKmgCount}×${rate/1000}k`);
+    const rateHint = rateParts.join(' + ') || '—';
+
+    // session row
+    const tr = document.createElement('tr');
+    tr.className = `session-row${isOpen?' open':''}`;
+    tr.dataset.id = s.id;
+    tr.innerHTML = `
+      <td style="padding:10px 14px;"><span class="chevron">▶</span></td>
+      <td class="date-cell" style="padding:10px 14px;">${fmtDate(s.date)}${weekTag(s.date)}</td>
+      <td class="companies-cell" style="padding:10px 14px;">${companyTags}</td>
+      <td class="pax-count" style="padding:10px 14px;">${n} чел.</td>
+      <td class="rate-hint" style="padding:10px 14px;">${rateHint}</td>
+      <td class="income-cell" style="padding:10px 14px;">${fmt(income)}</td>
+      <td style="padding:10px 8px;"><button class="btn-del-session" onclick="deleteSession(event,${s.id})">✕</button></td>
+    `;
+    tr.addEventListener('click', () => toggleOpen(s.id));
+    tbody.appendChild(tr);
+
+    // expand row
+    const expandTr = document.createElement('tr');
+    expandTr.className = 'expand-row';
+    expandTr.dataset.expand = s.id;
+    const expandTd = document.createElement('td');
+    expandTd.colSpan = 7;
+
+    const panel = document.createElement('div');
+    panel.className = `expand-panel${isOpen?' visible':''}`;
+    panel.innerHTML = buildPanel(s);
+    expandTd.appendChild(panel);
+    expandTr.appendChild(expandTd);
+    tbody.appendChild(expandTr);
+  });
+
+  document.getElementById('total-pax').textContent = totalPax + ' чел.';
+  const g = fmt(totalIncome);
+  document.getElementById('grand-total').textContent = g;
+  document.getElementById('grand-total-header').textContent = g;
+}
+
+function buildPanel(s) {
+  const n    = s.participants.length;
+  const rate = getRate(n);
+
+  let cards = '';
+  if (n === 0) {
+    cards = '<p class="pax-empty">Участники ещё не добавлены — используйте форму ниже.</p>';
+  } else {
+    cards = '<div class="pax-grid">' +
+      s.participants.map((p,i) => {
+        const r    = p.kmg ? 100000 : rate;
+        const name = p.name || `Участник ${i+1}`;
+        return `
+          <div class="pax-card${p.kmg?' kmg-card':''}">
+            <div class="pax-info">
+              <div class="pax-name">${esc(name)}</div>
+              <div class="pax-company">${esc(p.company)}${p.kmg?' · ★ КМГ':''}</div>
+            </div>
+            <div class="pax-rate${p.kmg?' kmg-rate':''}">${fmt(r)}</div>
+            <button class="btn-del-pax" onclick="delParticipant(event,${s.id},${i})">✕</button>
+          </div>`;
+      }).join('') + '</div>';
+  }
+
+  // company options
+  const opts = s.companies.map(c =>
+    `<option value="${esc(c)}" ${isKMG(c)?'data-kmg=1':''}>${esc(c)}</option>`
+  ).join('');
+
+  return `
+    ${cards}
+    <div class="add-pax-form" onclick="stopProp(event)">
+      <div class="field">
+        <label>Имя</label>
+        <input type="text" id="pname-${s.id}" placeholder="Алия Сейткали">
+      </div>
+      <div class="field">
+        <label>Компания</label>
+        <input type="text" id="pcomp-${s.id}" list="comp-list-${s.id}"
+          placeholder="${esc(s.companies[0]||'')}" value="${esc(s.companies[0]||'')}">
+        <datalist id="comp-list-${s.id}">${opts}</datalist>
+      </div>
+      <label class="kmg-check">
+        <input type="checkbox" id="pkmg-${s.id}" ${isKMG(s.companies[0]||'')?'checked':''}>
+        КМГ
+      </label>
+      <button class="btn-sm" onclick="addParticipant(event,${s.id})">+ Добавить</button>
+    </div>`;
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+function stopProp(e) { e.stopPropagation(); }
+
+// ─── interactions ─────────────────────────────────────────────────────────────
+
+function toggleOpen(id) {
+  openId = (openId === id) ? null : id;
+  render();
+  if (openId) {
+    // scroll into view
+    setTimeout(() => {
+      const el = document.querySelector(`[data-expand="${openId}"]`);
+      if (el) el.scrollIntoView({behavior:'smooth', block:'nearest'});
+    }, 50);
+  }
+}
+
+function addParticipant(e, sid) {
+  e.stopPropagation();
+  const s    = sessions.find(x => x.id === sid);
+  const name = document.getElementById(`pname-${sid}`).value.trim();
+  const comp = document.getElementById(`pcomp-${sid}`).value.trim() || (s.companies[0]||'');
+  const kmg  = document.getElementById(`pkmg-${sid}`).checked;
+  s.participants.push({name, company: comp, kmg: kmg || isKMG(comp)});
+  render();
+}
+
+function delParticipant(e, sid, idx) {
+  e.stopPropagation();
+  const s = sessions.find(x => x.id === sid);
+  s.participants.splice(idx, 1);
+  render();
+}
+
+function deleteSession(e, sid) {
+  e.stopPropagation();
+  if (!confirm('Удалить сессию?')) return;
+  sessions = sessions.filter(x => x.id !== sid);
+  if (openId === sid) openId = null;
+  render();
+}
+
+function addSession() {
+  const dateVal = document.getElementById('new-date').value;
+  const compVal = document.getElementById('new-companies').value.trim();
+  if (!dateVal || !compVal) { alert('Заполните дату и компании.'); return; }
+  const companies = compVal.split(',').map(c=>c.trim()).filter(Boolean);
+  sessions.push({id: nextId++, date: dateVal, companies, participants: []});
+  sessions.sort((a,b) => a.date.localeCompare(b.date));
+  document.getElementById('new-companies').value = '';
+  render();
+}
+
+// sync КМГ checkbox when company input changes
+document.addEventListener('input', e => {
+  const m = e.target.id && e.target.id.match(/^pcomp-(\d+)$/);
+  if (m) {
+    const sid = parseInt(m[1]);
+    const cb  = document.getElementById(`pkmg-${sid}`);
+    if (cb) cb.checked = isKMG(e.target.value);
+  }
+});
+
+render();
+</script>
+</body>
+</html>
