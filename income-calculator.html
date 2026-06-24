@@ -145,9 +145,12 @@
     <h1>Калькулятор дохода</h1>
     <p>Vaibu Corporate Training · Астана, 2026</p>
   </div>
-  <div class="total-badge">
-    <div class="lbl">Итого доход</div>
-    <div class="amt" id="grand-total-header">—</div>
+  <div style="display:flex;align-items:center;gap:14px;">
+    <button onclick="resetToDefault()" style="background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.3);color:white;padding:6px 12px;border-radius:6px;font-size:0.75rem;cursor:pointer;">↺ Сбросить</button>
+    <div class="total-badge">
+      <div class="lbl">Итого доход</div>
+      <div class="amt" id="grand-total-header">—</div>
+    </div>
   </div>
 </header>
 
@@ -400,8 +403,31 @@ let sessions = [
 ];
 
 
+const STORAGE_KEY = 'vaibu_sessions_v1';
+
+function save() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify({ sessions, nextId }));
+}
+
+function load() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    const data = JSON.parse(raw);
+    if (data.sessions) sessions = data.sessions;
+    if (data.nextId)   nextId   = data.nextId;
+  } catch(e) {}
+}
+
+function resetToDefault() {
+  if (!confirm('Сбросить все изменения и вернуть исходные данные?')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  location.reload();
+}
+
 let nextId = 10;
 let openId = null;
+load();
 
 // ─── calc ────────────────────────────────────────────────────────────────────
 
@@ -582,7 +608,7 @@ function addParticipant(e, sid) {
   const kmg  = document.getElementById(`pkmg-${sid}`).checked;
   s.participants.push({name, company: comp, role, kmg: kmg || isKMG(comp)});
   document.getElementById(`prole-${sid}`).value = '';
-  render();
+  save(); render();
 }
 
 function updatePax(sid, idx, field, value) {
@@ -590,9 +616,8 @@ function updatePax(sid, idx, field, value) {
   if (!s) return;
   s.participants[idx][field] = value;
   if (field === 'company') s.participants[idx].kmg = isKMG(value);
-  // re-render only totals/rates without collapsing the panel
+  save();
   renderTotals();
-  // update card styling for kmg
   if (field === 'company' || field === 'kmg') render();
 }
 
@@ -612,7 +637,7 @@ function delParticipant(e, sid, idx) {
   e.stopPropagation();
   const s = sessions.find(x => x.id === sid);
   s.participants.splice(idx, 1);
-  render();
+  save(); render();
 }
 
 function deleteSession(e, sid) {
@@ -620,7 +645,7 @@ function deleteSession(e, sid) {
   if (!confirm('Удалить сессию?')) return;
   sessions = sessions.filter(x => x.id !== sid);
   if (openId === sid) openId = null;
-  render();
+  save(); render();
 }
 
 function addSession() {
@@ -631,7 +656,7 @@ function addSession() {
   sessions.push({id: nextId++, date: dateVal, companies, participants: []});
   sessions.sort((a,b) => a.date.localeCompare(b.date));
   document.getElementById('new-companies').value = '';
-  render();
+  save(); render();
 }
 
 // sync КМГ checkbox when company input changes
