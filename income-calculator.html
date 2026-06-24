@@ -83,6 +83,7 @@
   }
   .pax-input.name-input { font-weight:700; }
   .pax-input.comp-input { color:#718096; font-size:0.76rem; }
+  .pax-input.role-input { color:#a0aec0; font-size:0.72rem; font-style:italic; }
   .pax-input::placeholder { color:#cbd5e0; }
   .pax-input:focus { background:#f7fafc; border-radius:3px; padding:1px 3px; margin:-1px -3px; }
   .pax-kmg-badge { font-size:0.68rem; color:#2b6cb0; font-weight:700; }
@@ -239,29 +240,99 @@ function weekTag(d) {
 // ─── data ────────────────────────────────────────────────────────────────────
 
 let sessions = [
-  { id:1, date:'2026-06-13', companies:['КазМунайГаз','QazaqGaz','Тау-Кен Самрук','СК Инвест'],
+  { id:1, date:'2026-06-13', companies:['КазМунайГаз','QazaqGaz','Тау-Кен Самрук','СК Инвест','Samruk-Kazyna Trust','SBA'],
     participants:[
-      {name:'', company:'КазМунайГаз', kmg:true},
-      {name:'', company:'QazaqGaz',     kmg:false},
-      {name:'', company:'Тау-Кен Самрук',kmg:false},
+      {name:'Балықбаев Руслан Әлібекұлы',      company:'АО НК «КазМунайГаз»',          kmg:true,  role:'Заместитель Председателя Правления'},
+      {name:'Молдарахимов Талгат Манарбекович', company:'АО НК «КазМунайГаз»',          kmg:true,  role:'Заместитель Председателя Правления'},
+      {name:'Мирманов Жанболат Жантемирович',  company:'АО «НК «QazaqGaz»',             kmg:false, role:'Зам. Председателя Правления по экономике и финансам'},
+      {name:'Турегельдин Аман Жаксыбаевич',    company:'КФ Samruk-Kazyna Trust',         kmg:false, role:'Заместитель Генерального директора'},
+      {name:'Абсаметов Нариман Малисулы',       company:'АО НГК «Тау-Кен Самрук»',       kmg:false, role:'Председатель Правления'},
+      {name:'Жумагулов Руслан Бакытжанович',   company:'АО НГК «Тау-Кен Самрук»',       kmg:false, role:'Главный директор по экономике и финансам'},
+      {name:'Идрисов Данияр Ерланович',         company:'АО НГК «Тау-Кен Самрук»',       kmg:false, role:'Главный директор по инвестициям и стратегии'},
+      {name:'Аблазимов Рахматулла Махсудханович',company:'АО НГК «Тау-Кен Самрук»',      kmg:false, role:'Главный директор по администрированию бизнеса'},
+      {name:'Пирмаханов Сакен Болатович',       company:'ТОО Самрук-Казына Инвест',       kmg:false, role:'Генеральный директор'},
+      {name:'Абдешбеков Болат Темирханович',    company:'ЧУ Samruk Business Academy',     kmg:false, role:'Зам. директора департамента развития корпоративных функций'},
+      {name:'Маударбеков Азат Муратбекович',    company:'ЧУ Samruk Business Academy',     kmg:false, role:'Управляющий директор по обучению'},
     ]
   },
   { id:2, date:'2026-06-16', companies:['QazaqGaz','KEGOC'], participants:[] },
   { id:3, date:'2026-06-17', companies:['Казатомпром','Семизбай-U','KAP Logistics','KAP Technology','СК Контракт','СК Инвест','KEGOC'], participants:[] },
-  { id:4, date:'2026-06-17', companies:['Казахтелеком'], participants:[] },
-  { id:5, date:'2026-06-18', companies:['Samruk-Kazyna Ondeu'], participants:[] },
-  { id:6, date:'2026-06-19', companies:['Казахтелеком'], participants:[] },
-  { id:7, date:'2026-06-20', companies:['QazaqGaz','СК Контракт'], participants:[] },
+  { id:4, date:'2026-06-17', companies:['Казахтелеком'],
+    participants:[
+      {name:'Кулмуханбетов Жасулан',             company:'Казахтелеком (ДТК)', kmg:false, role:'Начальник, отдел автоматизации и оптимизации бизнес-процессов'},
+      {name:'Матчанова Айнур',                   company:'Казахтелеком (ДТК)', kmg:false, role:'EX менеджер'},
+      {name:'Байконурова Меруерт Бактияровна',   company:'Казахтелеком (ОДС)', kmg:false, role:'Ведущий инженер по обслуживанию оборудования сети передачи данных'},
+      {name:'Камзабаев Мурат Ерикович',          company:'Казахтелеком (ОДС)', kmg:false, role:'И.о. начальника Службы технической поддержки 3 уровня Астана'},
+      {name:'Тобағабылов Нұрғали Салтайұлы',     company:'Казахтелеком (ОДС)', kmg:false, role:'Главный менеджер Службы технической поддержки 3 уровня Астана'},
+      {name:'Сексенова Назира Кшбаевна',         company:'Казахтелеком (ОДС)', kmg:false, role:'Ведущий инженер электросвязи'},
+      {name:'Сыздыкова Гульмира Бекахметовна',   company:'Казахтелеком (ОДС)', kmg:false, role:'EX-менеджер, Служба анализа и вознаграждения'},
+      {name:'Абубакир Қайыржан',                 company:'Казахтелеком (ДУП)', kmg:false, role:'Ведущий специалист СРП'},
+      {name:'Тусупов Ернат Орынғазыұлы',         company:'Казахтелеком (ДУП)', kmg:false, role:'Менеджер GR'},
+      {name:'Каип Жандос Аманжолулы',            company:'Казахтелеком (ДЦБ)', kmg:false, role:'Главный менеджер отдела Internet of Things'},
+      {name:'Сермахан Абылайхан',                company:'Казахтелеком (ДРБ)', kmg:false, role:'Главный специалист ЦАП'},
+      {name:'Дидарқызы Каракөз',                 company:'Казахтелеком (ДРБ)', kmg:false, role:'Эксперт СИТВ'},
+      {name:'Тұрлыбек Ерқанат',                  company:'Казахтелеком (ДРБ)', kmg:false, role:'Эксперт СИТВ'},
+      {name:'Абуханов Тимур Баурбекович',        company:'Казахтелеком (СФ)',  kmg:false, role:'Ведущий специалист, отдел транспортного обеспечения'},
+      {name:'Касимбекова Анара Сергалиевна',     company:'Казахтелеком (СФ)',  kmg:false, role:'Специалист, центр производственно-хозяйственного обеспечения'},
+      {name:'Абдреева Айгуль Батырбековна',      company:'Казахтелеком (СФ)',  kmg:false, role:'Ведущий специалист, отдел транспортного обеспечения'},
+      {name:'Хакимов Чингиз Назарович',          company:'Казахтелеком (ДКБ)', kmg:false, role:'Менеджер, Служба развития сети доступа'},
+      {name:'Ондырханова Аружан Қизатқызы',      company:'Казахтелеком (ДКБ)', kmg:false, role:'Бизнес-аналитик, отдел методологического сопровождения продаж'},
+      {name:'Сыздыков Алихан',                   company:'Казахтелеком (ДТК)', kmg:false, role:'Главный специалист, Сектор маркировки'},
+      {name:'Омаров Ерлан Курманбаевич',         company:'Казахтелеком (ДКБ)', kmg:false, role:'Главный менеджер, Служба развития сети доступа'},
+    ]
+  },
+  { id:5, date:'2026-06-18', companies:['Samruk-Kazyna Ondeu'],
+    participants:[
+      {name:'Маулетов Данияр Нурланович',        company:'ТОО Samruk-Kazyna Ondeu', kmg:false, role:'Председатель Правления'},
+      {name:'Тайчикенова Айганша Зарыкбековна',  company:'ТОО Samruk-Kazyna Ondeu', kmg:false, role:'Управляющий директор по экономике и финансам, член Правления'},
+      {name:'Кульмаханов С.Т.',                  company:'ТОО Samruk-Kazyna Ondeu', kmg:false, role:'Управляющий директор по развитию и управлению активами, член Правления'},
+      {name:'Бауржанқызы Ф.',                    company:'ТОО Samruk-Kazyna Ondeu', kmg:false, role:'Руководитель правовой службы, член Правления'},
+      {name:'Петровский Е.В.',                   company:'ТОО Samruk-Kazyna Ondeu', kmg:false, role:'Офицер по информационной безопасности'},
+      {name:'Умутбаев Б.Ж.',                     company:'ТОО Samruk-Kazyna Ondeu', kmg:false, role:'Менеджер по искусственному интеллекту'},
+    ]
+  },
+  { id:6, date:'2026-06-19', companies:['Казахтелеком'],
+    participants:[
+      {name:'Байдильденова Жанат Галимовна',          company:'Казахтелеком (ОДС)', kmg:false, role:'Главный менеджер, Департамент по работе с госорганами и категорированными клиентами'},
+      {name:'Сембаев Ерлік Еркебұланұлы',             company:'Казахтелеком (ОДС)', kmg:false, role:'Начальник Центра оперативного контроля и технической поддержки сетевых ресурсов г. Астана'},
+      {name:'Нуралиев Ерасыл Тұрсынбекұлы',           company:'Казахтелеком (ОДС)', kmg:false, role:'Инженер по техническому обслуживанию оборудования сети телекоммуникаций 1 категории'},
+      {name:'Курмангожин Адэль Бектурович',            company:'Казахтелеком (ОДС)', kmg:false, role:'Начальник участка, Центр технического обслуживания местных сетей'},
+      {name:'Аубакиров Ермек Сапарович',               company:'Казахтелеком (ДУП)', kmg:false, role:'Руководитель центра ЦКС'},
+      {name:'Сәрсенғали Олжас Төлегенұлы',             company:'Казахтелеком (ДКБ)', kmg:false, role:'Бизнес-аналитик, Департамент соглашений с операторами связи'},
+      {name:'Жумажанов Ернар Еркенович',               company:'Казахтелеком (ДКБ)', kmg:false, role:'Ведущий инженер электросвязи, Отдел управления и контроля ТМЗ и ОС'},
+      {name:'Асқарұлы Сұлтанбек',                      company:'Казахтелеком (ДКБ)', kmg:false, role:'Бизнес-аналитик, Департамент соглашений с операторами связи'},
+      {name:'Сулейменова Эльмира Узакбаевна',          company:'Казахтелеком (ДКБ)', kmg:false, role:'Ведущий инженер, Служба развития сети доступа'},
+      {name:'Мусина Алина Сериковна',                  company:'Казахтелеком (СФ)',  kmg:false, role:'EX аналитик'},
+      {name:'Аленова Самал Мақсотқызы',                company:'Казахтелеком (СФ)',  kmg:false, role:'Менеджер по подбору персонала'},
+      {name:'Орловский Ростислав Владиславович',       company:'Казахтелеком (ДРБ)', kmg:false, role:'Главный бизнес-аналитик, Отдел развития цифровых клиентских путей'},
+      {name:'Митрошина Алина Александровна',           company:'Казахтелеком (ДРБ)', kmg:false, role:'Главный бизнес-аналитик, Отдел развития цифровых клиентских путей'},
+      {name:'Ковшова Светлана',                        company:'Казахтелеком (ДЦБ)', kmg:false, role:'И.о. руководителя Службы цифровизации и DATA EX'},
+      {name:'Иминов Талгат Абдрахимович',              company:'Казахтелеком (ДТК)', kmg:false, role:'Начальник, Отдел административно-хозяйственного обеспечения'},
+      {name:'Гриневич Юлия Анатольевна',               company:'Казахтелеком (КУ)',  kmg:false, role:'Генеральный директор, Корпоративный Университет'},
+      {name:'Анкибаева Ажар Отаршеевна',               company:'Казахтелеком (КУ)',  kmg:false, role:'Руководитель службы сертификации и организации учебного процесса'},
+      {name:'Искакова Самал Куанышевна',               company:'Казахтелеком (КУ)',  kmg:false, role:'Старший партнер, Группа партнеров по обучению и развитию'},
+      {name:'Ізтілеуова Айбала Нұрғалиқызы',           company:'Казахтелеком (КУ)',  kmg:false, role:'Преподаватель, Сектор преподавателей'},
+      {name:'Оспанова Роза Даулетияровна',             company:'Казахтелеком (КУ)',  kmg:false, role:'Менеджер по внешнему обучению'},
+    ]
+  },
+  { id:7, date:'2026-06-20', companies:['QazaqGaz','СК Контракт'],
+    participants:[
+      {name:'Кисметов Абзал Жумабаевич',    company:'АО «НК «QazaqGaz»',          kmg:false, role:'Заместитель Председателя Правления по производству'},
+      {name:'Тулегенов Акбар Маликович',    company:'АО «НК «QazaqGaz»',          kmg:false, role:'Первый заместитель Председателя Правления'},
+      {name:'Шарипов Нурлан Сакенович',     company:'ТОО «Самрук-Казына Контракт»', kmg:false, role:'Заместитель генерального директора'},
+      {name:'Чужегулов Ануар Аманкулович',  company:'ТОО «Самрук-Казына Контракт»', kmg:false, role:'Заместитель генерального директора'},
+    ]
+  },
   { id:8, date:'2026-06-23', companies:['Самрук-Энерго'], participants:[] },
   { id:9, date:'2026-06-25', companies:['Самрук-Қазына','Казпочта','Самрук-Энерго','KEGOC','СК Инвест','SK Trust','ЦСВК'], participants:[] },
 ];
 
-// seed participant counts from the known totals
-const KNOWN_TOTALS = {1:9, 2:11, 3:20, 4:20, 5:6, 6:20, 7:4, 8:9, 9:20};
+// seed empty slots for sessions without file data
+const KNOWN_TOTALS = {2:11, 3:20, 8:9, 9:20};
 sessions.forEach(s => {
   const need = KNOWN_TOTALS[s.id] || 0;
   while (s.participants.length < need)
-    s.participants.push({name:'', company: s.companies[0] || '', kmg: isKMG(s.companies[0] || '')});
+    s.participants.push({name:'', company: s.companies[0] || '', kmg: isKMG(s.companies[0] || ''), role:''});
 });
 
 let nextId = 10;
@@ -370,6 +441,12 @@ function buildPanel(s) {
                 value="${esc(p.company)}"
                 onchange="updatePax(${s.id},${i},'company',this.value)"
                 onclick="stopProp(event)">
+              <input class="pax-input role-input"
+                type="text"
+                placeholder="Должность"
+                value="${esc(p.role||'')}"
+                onchange="updatePax(${s.id},${i},'role',this.value)"
+                onclick="stopProp(event)">
             </div>
             <div class="pax-right">
               <div class="pax-rate${p.kmg ? ' kmg-rate' : ''}">${fmt(r)}</div>
@@ -399,6 +476,10 @@ function buildPanel(s) {
         <label>Место работы</label>
         <input type="text" id="pcomp-${s.id}" list="comp-list-${s.id}"
           placeholder="${esc(s.companies[0] || '')}" value="${esc(s.companies[0] || '')}">
+      </div>
+      <div class="field">
+        <label>Должность</label>
+        <input type="text" id="prole-${s.id}" placeholder="Заместитель директора">
       </div>
       <label class="kmg-check">
         <input type="checkbox" id="pkmg-${s.id}" ${isKMG(s.companies[0] || '') ? 'checked' : ''}>
@@ -432,8 +513,10 @@ function addParticipant(e, sid) {
   const s    = sessions.find(x => x.id === sid);
   const name = document.getElementById(`pname-${sid}`).value.trim();
   const comp = document.getElementById(`pcomp-${sid}`).value.trim() || (s.companies[0]||'');
+  const role = document.getElementById(`prole-${sid}`).value.trim();
   const kmg  = document.getElementById(`pkmg-${sid}`).checked;
-  s.participants.push({name, company: comp, kmg: kmg || isKMG(comp)});
+  s.participants.push({name, company: comp, role, kmg: kmg || isKMG(comp)});
+  document.getElementById(`prole-${sid}`).value = '';
   render();
 }
 
