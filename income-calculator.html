@@ -136,6 +136,42 @@
   .btn-del-session { background:none; border:none; color:#e2e8f0; font-size:0.9rem;
     cursor:pointer; padding:3px 7px; border-radius:4px; transition:color 0.15s; }
   .btn-del-session:hover { color:#fc8181; background:#fff5f5; }
+
+  /* save button */
+  .save-bar {
+    position:fixed; bottom:24px; right:24px; z-index:100;
+    display:flex; align-items:center; gap:10px;
+  }
+  .btn-save {
+    background:#38a169; color:white; border:none;
+    padding:12px 22px; border-radius:10px; font-size:0.9rem; font-weight:700;
+    cursor:pointer; box-shadow:0 4px 14px rgba(56,161,105,0.4);
+    transition:background 0.15s, transform 0.1s;
+  }
+  .btn-save:hover { background:#276749; transform:translateY(-1px); }
+  .btn-save:active { transform:translateY(0); }
+  .save-toast {
+    background:#276749; color:white; padding:8px 14px; border-radius:8px;
+    font-size:0.82rem; font-weight:600; opacity:0;
+    transition:opacity 0.3s;
+    pointer-events:none;
+  }
+  .save-toast.show { opacity:1; }
+
+  /* session edit form */
+  .session-edit-form {
+    display:flex; gap:8px; align-items:flex-end; flex-wrap:wrap;
+    background:#e8f4fd; border-radius:8px; padding:10px 14px; margin-bottom:14px;
+  }
+  .session-edit-form .field { display:flex; flex-direction:column; gap:3px; }
+  .session-edit-form label { font-size:0.72rem; font-weight:600; color:#4a5568; }
+  .session-edit-form input {
+    padding:6px 9px; border:1.5px solid #90cdf4; border-radius:6px; font-size:0.82rem;
+  }
+  .session-edit-form input:focus { outline:none; border-color:#3182ce; }
+  .btn-edit-session { background:none; border:none; color:#a0aec0; font-size:0.8rem;
+    cursor:pointer; padding:2px 6px; border-radius:4px; margin-left:4px; }
+  .btn-edit-session:hover { color:#3182ce; background:#ebf8ff; }
 </style>
 </head>
 <body>
@@ -209,6 +245,11 @@
   </div>
 
 </main>
+
+<div class="save-bar">
+  <div class="save-toast" id="save-toast">✓ Сохранено</div>
+  <button class="btn-save" onclick="saveManual()">💾 Сохранить</button>
+</div>
 
 <script>
 // ─── helpers ────────────────────────────────────────────────────────────────
@@ -407,6 +448,13 @@ function save() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify({ sessions, nextId }));
 }
 
+function saveManual() {
+  save();
+  const t = document.getElementById('save-toast');
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2000);
+}
+
 function load() {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -425,6 +473,7 @@ function resetToDefault() {
 
 let nextId = 10;
 let openId = null;
+let editingId = null;
 load();
 
 // ─── calc ────────────────────────────────────────────────────────────────────
@@ -474,7 +523,10 @@ function render() {
       <td class="pax-count" style="padding:10px 14px;">${n} чел.</td>
       <td class="rate-hint" style="padding:10px 14px;">${rateHint}</td>
       <td class="income-cell" style="padding:10px 14px;">${fmt(income)}</td>
-      <td style="padding:10px 8px;"><button class="btn-del-session" onclick="deleteSession(event,${s.id})">✕</button></td>
+      <td style="padding:10px 8px;display:flex;gap:2px;">
+        <button class="btn-edit-session" onclick="toggleEdit(event,${s.id})" title="Редактировать">✎</button>
+        <button class="btn-del-session" onclick="deleteSession(event,${s.id})">✕</button>
+      </td>
     `;
     tr.addEventListener('click', () => toggleOpen(s.id));
     tbody.appendChild(tr);
@@ -553,8 +605,22 @@ function buildPanel(s) {
     `<option value="${esc(c)}">`
   ).join('');
 
+  const editForm = editingId === s.id ? `
+    <div class="session-edit-form" onclick="stopProp(event)">
+      <div class="field">
+        <label>Дата</label>
+        <input type="date" id="edit-date-${s.id}" value="${s.date}">
+      </div>
+      <div class="field" style="flex:1;min-width:200px;">
+        <label>Компании (через запятую)</label>
+        <input type="text" id="edit-comp-${s.id}" value="${esc(s.companies.join(', '))}" style="width:100%;">
+      </div>
+      <button class="btn-sm" onclick="applySessionEdit(event,${s.id})">✓ Применить</button>
+    </div>` : '';
+
   return `
     <datalist id="comp-list-${s.id}">${opts}</datalist>
+    ${editForm}
     ${cards}
     <div class="add-pax-form" onclick="stopProp(event)">
       <div class="field">
@@ -584,6 +650,25 @@ function esc(s) {
 function stopProp(e) { e.stopPropagation(); }
 
 // ─── interactions ─────────────────────────────────────────────────────────────
+
+function toggleEdit(e, id) {
+  e.stopPropagation();
+  editingId = (editingId === id) ? null : id;
+  openId = id;
+  render();
+}
+
+function applySessionEdit(e, id) {
+  e.stopPropagation();
+  const s = sessions.find(x => x.id === id);
+  const newDate = document.getElementById(`edit-date-${id}`).value;
+  const newComp = document.getElementById(`edit-comp-${id}`).value;
+  if (newDate) s.date = newDate;
+  if (newComp) s.companies = newComp.split(',').map(c => c.trim()).filter(Boolean);
+  editingId = null;
+  sessions.sort((a,b) => a.date.localeCompare(b.date));
+  save(); render();
+}
 
 function toggleOpen(id) {
   openId = (openId === id) ? null : id;
