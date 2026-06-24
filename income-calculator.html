@@ -399,13 +399,6 @@ let sessions = [
   },
 ];
 
-// seed empty slots for sessions without file data
-const KNOWN_TOTALS = {2:11, 3:20, 8:9, 9:20};
-sessions.forEach(s => {
-  const need = KNOWN_TOTALS[s.id] || 0;
-  while (s.participants.length < need)
-    s.participants.push({name:'', company: s.companies[0] || '', kmg: isKMG(s.companies[0] || ''), role:''});
-});
 
 let nextId = 10;
 let openId = null;
