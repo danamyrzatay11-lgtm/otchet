@@ -510,6 +510,8 @@ let openId = null;
 let editingId = null;
 load();
 sessions.sort((a,b) => a.date.localeCompare(b.date));
+// auto-flag KMG by company name
+sessions.forEach(s => s.participants.forEach(p => { if (isKMG(p.company)) p.kmg = true; }));
 
 // ─── calc ────────────────────────────────────────────────────────────────────
 
