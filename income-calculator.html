@@ -505,10 +505,11 @@ function resetToDefault() {
   location.reload();
 }
 
-let nextId = 10;
+let nextId = 12;
 let openId = null;
 let editingId = null;
 load();
+sessions.sort((a,b) => a.date.localeCompare(b.date));
 
 // ─── calc ────────────────────────────────────────────────────────────────────
 
