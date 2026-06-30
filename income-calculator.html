@@ -311,7 +311,7 @@ let sessions = [
       {name:'Исаев Данияр Бауыржанович',         company:'АО KEGOC',          kmg:false, role:'Руководитель секретариата'},
     ]
   },
-  { id:3, date:'2026-06-17', companies:['Казатомпром','Семизбай-U','KAP Logistics','KAP Technology','СК Контракт','СК Инвест','KEGOC'],
+  { id:3, date:'2026-06-17', fixedRate:100000, companies:['Казатомпром','Семизбай-U','KAP Logistics','KAP Technology','СК Контракт','СК Инвест','KEGOC'],
     participants:[
       {name:'Юсупов Меиржан Бахитович',           company:'АО «НАК «Казатомпром»',     kmg:false, role:'Председатель Правления'},
       {name:'Тулебаев Марат Дулатович',            company:'АО «НАК «Казатомпром»',     kmg:false, role:'Первый заместитель Председателя Правления — Главный директор по экономике и финансам'},
@@ -545,7 +545,7 @@ sessions.forEach(s => s.participants.forEach(p => { if (isKMG(p.company)) p.kmg 
 
 function sessionIncome(s) {
   const total = s.participants.length;
-  const rate  = getRate(total);
+  const rate  = s.fixedRate || getRate(total);
   return s.participants.reduce((sum, p) => sum + (p.kmg ? 100000 : rate), 0);
 }
 
@@ -572,9 +572,11 @@ function render() {
 
     const kmgCount    = s.participants.filter(p=>p.kmg).length;
     const nonKmgCount = n - kmgCount;
+    const effectiveRate = s.fixedRate || rate;
     let rateParts = [];
     if (kmgCount > 0)    rateParts.push(`${kmgCount}×100k`);
-    if (nonKmgCount > 0) rateParts.push(`${nonKmgCount}×${rate/1000}k`);
+    if (nonKmgCount > 0) rateParts.push(`${nonKmgCount}×${effectiveRate/1000}k`);
+    if (s.fixedRate)     rateParts.push('⚡ фикс.');
     const rateHint = rateParts.join(' + ') || '—';
 
     // session row
