@@ -406,6 +406,14 @@
   function addDays(dateStr, n){ var d=new Date(dateStr+'T00:00:00'); d.setDate(d.getDate()+n); return fmtDate(d); }
   function daysBetween(a,b){ var da=new Date(a+'T00:00:00'), db=new Date(b+'T00:00:00'); return Math.round((db-da)/86400000); }
   var WEEKDAY_SHORT = ['Вс','Пн','Вт','Ср','Чт','Пт','Сб'];
+  function currentWeekDays(){
+    var dow = new Date(todayStr()+'T00:00:00').getDay();
+    var mondayOffset = (dow === 0) ? -6 : (1 - dow);
+    var monday = addDays(todayStr(), mondayOffset);
+    var days = [];
+    for(var i=0;i<7;i++){ days.push(addDays(monday, i)); }
+    return days;
+  }
 
   /* ---------- data model ---------- */
   var HABITS = [
@@ -566,8 +574,7 @@
   function renderStitchGrid(){
     var grid = document.getElementById('stitchGrid');
     var html = '<div></div>';
-    var days = [];
-    for(var i=6;i>=0;i--){ days.push(addDays(todayStr(), -i)); }
+    var days = currentWeekDays();
     days.forEach(function(d){
       var dt = new Date(d+'T00:00:00');
       var isToday = d === todayStr();
@@ -787,8 +794,7 @@
 
   /* ---------- rendering: progress ---------- */
   function renderProgress(){
-    var days = [];
-    for(var i=6;i>=0;i--){ days.push(addDays(todayStr(), -i)); }
+    var days = currentWeekDays();
 
     var closed = 0, sleepSum=0, sleepN=0, waterSum=0, waterN=0;
     days.forEach(function(d){
