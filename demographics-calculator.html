@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Демографический калькулятор — оценка численности</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', sans-serif; background: #f0f4f8; color: #1a202c; min-height: 100vh; }
+
+  header {
+    background: linear-gradient(135deg, #1a365d 0%, #2b6cb0 100%);
+    color: white; padding: 24px 32px;
+  }
+  header h1 { font-size: 1.4rem; font-weight: 700; }
+  header p  { font-size: 0.82rem; opacity: 0.8; margin-top: 4px; max-width: 700px; }
+
+  main { max-width: 980px; margin: 0 auto; padding: 24px 18px 60px; }
+
+  .disclaimer {
+    background: #fffaf0; border: 1px solid #fbd38d; color: #7b341e;
+    border-radius: 10px; padding: 14px 16px; font-size: 0.82rem; line-height: 1.5;
+    margin-bottom: 22px;
+  }
+  .disclaimer b { color: #c05621; }
+
+  .panel {
+    background: white; border-radius: 14px; padding: 22px;
+    box-shadow: 0 1px 6px rgba(0,0,0,0.08); margin-bottom: 20px;
+  }
+  .panel h2 {
+    font-size: 0.95rem; font-weight: 700; color: #2d3748;
+    margin-bottom: 16px; display: flex; align-items: center; gap: 8px;
+  }
+  .panel h2::before { content:''; display:inline-block; width:4px; height:16px; background:#3182ce; border-radius:2px; }
+
+  .grid {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+    gap: 16px;
+  }
+  .field label {
+    display: block; font-size: 0.75rem; font-weight: 600; color: #4a5568;
+    margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.03em;
+  }
+  .field select, .field input {
+    width: 100%; padding: 9px 10px; border: 1px solid #e2e8f0; border-radius: 8px;
+    font-size: 0.88rem; font-family: inherit; background: #f7fafc; color: #1a202c;
+  }
+  .field select:focus, .field input:focus { outline: none; border-color: #3182ce; background: white; }
+  .age-row { display: flex; gap: 8px; align-items: center; }
+  .age-row input { text-align: center; }
+  .age-row span { color: #a0aec0; font-size: 0.8rem; }
+
+  .btn-calc {
+    margin-top: 20px; background: #3182ce; color: white; border: none;
+    padding: 12px 28px; border-radius: 10px; font-size: 0.9rem; font-weight: 700;
+    cursor: pointer; transition: background 0.15s;
+  }
+  .btn-calc:hover { background: #2b6cb0; }
+
+  .result { display: none; }
+  .result.visible { display: block; }
+
+  .result-hero {
+    background: linear-gradient(135deg, #1a365d 0%, #2b6cb0 100%); color: white;
+    border-radius: 14px; padding: 26px; text-align: center; margin-bottom: 18px;
+  }
+  .result-hero .num { font-size: 2.6rem; font-weight: 800; line-height: 1; }
+  .result-hero .lbl { font-size: 0.85rem; opacity: 0.85; margin-top: 8px; }
+  .result-hero .pct { font-size: 0.78rem; opacity: 0.7; margin-top: 4px; }
+
+  .breakdown {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 10px; margin-bottom: 8px;
+  }
+  .bd-card {
+    background: #f7fafc; border: 1px solid #e2e8f0; border-radius: 10px;
+    padding: 12px 14px;
+  }
+  .bd-card .k { font-size: 0.7rem; color: #a0aec0; text-transform: uppercase; letter-spacing: 0.04em; }
+  .bd-card .v { font-size: 1.1rem; font-weight: 700; color: #2d3748; margin-top: 3px; }
+
+  .method-note {
+    font-size: 0.78rem; color: #718096; line-height: 1.6; margin-top: 14px;
+    border-top: 1px solid #edf2f7; padding-top: 12px;
+  }
+  .method-note a { color: #3182ce; }
+
+  footer { text-align: center; font-size: 0.75rem; color: #a0aec0; padding: 20px; }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Демографический калькулятор</h1>
+  <p>Оценка численности людей по городу, возрасту, полу и другим параметрам на основе агрегированной официальной статистики Казахстана.</p>
+</header>
+
+<main>
+  <div class="disclaimer">
+    <b>Это оценка, не поиск людей.</b> Инструмент не собирает и не ищет данные о конкретных людях в интернете — это невозможно и нарушало бы приватность.
+    Вместо этого он берёт официальную агрегированную статистику (численность городов, возрастная пирамида, занятость, браки и т.д. по данным
+    <a href="https://stat.gov.kz" target="_blank" rel="noopener">Бюро национальной статистики РК</a>) и оценивает, сколько человек в среднем попадает под заданные критерии,
+    в предположении статистической независимости признаков. Чем больше фильтров вы включаете одновременно, тем ниже точность оценки.
+  </div>
+
+  <div class="panel">
+    <h2>Параметры</h2>
+    <div class="grid">
+      <div class="field">
+        <label>Город</label>
+        <select id="f-city"></select>
+      </div>
+      <div class="field">
+        <label>Возраст</label>
+        <div class="age-row">
+          <input type="number" id="f-age-min" min="0" max="100" value="18">
+          <span>—</span>
+          <input type="number" id="f-age-max" min="0" max="100" value="65">
+        </div>
+      </div>
+      <div class="field">
+        <label>Пол</label>
+        <select id="f-gender">
+          <option value="all">Не важно</option>
+          <option value="male">Мужчины</option>
+          <option value="female">Женщины</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Занятость</label>
+        <select id="f-employment">
+          <option value="all">Не важно</option>
+          <option value="employed">Работает</option>
+          <option value="unemployed">Не работает</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Семейное положение</label>
+        <select id="f-marital">
+          <option value="all">Не важно</option>
+          <option value="single">Никогда не в браке</option>
+          <option value="married">Женат / замужем</option>
+          <option value="divorced">Разведён(а)</option>
+          <option value="widowed">Вдовец / вдова</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Наличие детей</label>
+        <select id="f-children">
+          <option value="all">Не важно</option>
+          <option value="yes">Есть дети</option>
+          <option value="no">Нет детей</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Образование</label>
+        <select id="f-education">
+          <option value="all">Не важно</option>
+          <option value="secondary">Среднее</option>
+          <option value="vocational">Среднее специальное</option>
+          <option value="higher">Высшее</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Уровень дохода</label>
+        <select id="f-income">
+          <option value="all">Не важно</option>
+          <option value="low">Ниже среднего</option>
+          <option value="medium">Средний</option>
+          <option value="high">Выше среднего</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn-calc" onclick="calculate()">Рассчитать</button>
+  </div>
+
+  <div class="result" id="result">
+    <div class="result-hero">
+      <div class="num" id="res-num">0</div>
+      <div class="lbl" id="res-lbl">человек по заданным параметрам</div>
+      <div class="pct" id="res-pct"></div>
+    </div>
+    <div class="panel">
+      <h2>Детали расчёта</h2>
+      <div class="breakdown" id="res-breakdown"></div>
+      <div class="method-note">
+        Расчёт: население города × доля возрастной группы (по полу) × вероятность занятости × вероятность семейного статуса ×
+        вероятность наличия детей × вероятность уровня образования × вероятность уровня дохода — для каждого включённого фильтра.
+        Источник базовых данных: <a href="https://stat.gov.kz" target="_blank" rel="noopener">stat.gov.kz</a> (численность городов, возрастная структура,
+        уровень занятости 65% за 2024г.), остальные распределения — статистические приближения на основе типичных для Казахстана демографических закономерностей.
+      </div>
+    </div>
+  </div>
+</main>
+
+<footer>Оценочный инструмент. Не использовать для идентификации или поиска конкретных людей.</footer>
+
+<script>
+// ---- Reference data (approximate, based on public stat.gov.kz figures, 2024) ----
+
+const CITIES = [
+  { name: 'Алматы', pop: 2286000 },
+  { name: 'Астана', pop: 1521000 },
+  { name: 'Шымкент', pop: 1253000 },
+  { name: 'Караганда', pop: 497000 },
+  { name: 'Актобе', pop: 500000 },
+  { name: 'Тараз', pop: 360000 },
+  { name: 'Павлодар', pop: 350000 },
+  { name: 'Усть-Каменогорск', pop: 350000 },
+  { name: 'Семей', pop: 320000 },
+  { name: 'Атырау', pop: 310000 },
+  { name: 'Кызылорда', pop: 270000 },
+  { name: 'Костанай', pop: 246000 },
+];
+
+// 5-year age bins: share of total population, and male fraction within each bin
+const AGE_BINS = [
+  { min: 0,  max: 4,  share: 11.0, maleFrac: 0.512 },
+  { min: 5,  max: 9,  share: 10.0, maleFrac: 0.511 },
+  { min: 10, max: 14, share: 8.4,  maleFrac: 0.510 },
+  { min: 15, max: 19, share: 6.9,  maleFrac: 0.509 },
+  { min: 20, max: 24, share: 6.4,  maleFrac: 0.508 },
+  { min: 25, max: 29, share: 7.7,  maleFrac: 0.505 },
+  { min: 30, max: 34, share: 8.4,  maleFrac: 0.503 },
+  { min: 35, max: 39, share: 7.9,  maleFrac: 0.500 },
+  { min: 40, max: 44, share: 6.9,  maleFrac: 0.497 },
+  { min: 45, max: 49, share: 5.9,  maleFrac: 0.492 },
+  { min: 50, max: 54, share: 4.9,  maleFrac: 0.485 },
+  { min: 55, max: 59, share: 4.4,  maleFrac: 0.470 },
+  { min: 60, max: 64, share: 3.7,  maleFrac: 0.450 },
+  { min: 65, max: 69, share: 2.7,  maleFrac: 0.420 },
+  { min: 70, max: 74, share: 1.6,  maleFrac: 0.390 },
+  { min: 75, max: 79, share: 1.0,  maleFrac: 0.350 },
+  { min: 80, max: 100,share: 1.5,  maleFrac: 0.300 },
+];
+(function normalizeAgeBins(){
+  const total = AGE_BINS.reduce((s,b)=>s+b.share,0);
+  AGE_BINS.forEach(b=> b.share = b.share/total*100);
+})();
+
+// employment-to-population ratio by age bin (national avg ~65% for 15+, stat.gov.kz 2024)
+const EMPLOYMENT_BY_AGE = {
+  0:0, 5:0, 10:0, 15:0.12, 20:0.55, 25:0.78, 30:0.82, 35:0.83, 40:0.82,
+  45:0.80, 50:0.76, 55:0.68, 60:0.35, 65:0.15, 70:0.08, 75:0.04, 80:0.02
+};
+
+// marital status distribution by age bin: {single, married, divorced, widowed}
+const MARITAL_BY_AGE = {
+  0:  {single:1,    married:0,    divorced:0,    widowed:0},
+  5:  {single:1,    married:0,    divorced:0,    widowed:0},
+  10: {single:1,    married:0,    divorced:0,    widowed:0},
+  15: {single:0.96, married:0.04, divorced:0,    widowed:0},
+  20: {single:0.55, married:0.43, divorced:0.02, widowed:0},
+  25: {single:0.25, married:0.68, divorced:0.06, widowed:0.01},
+  30: {single:0.12, married:0.78, divorced:0.09, widowed:0.01},
+  35: {single:0.08, married:0.78, divorced:0.12, widowed:0.02},
+  40: {single:0.06, married:0.75, divorced:0.15, widowed:0.04},
+  45: {single:0.05, married:0.72, divorced:0.16, widowed:0.07},
+  50: {single:0.04, married:0.68, divorced:0.16, widowed:0.12},
+  55: {single:0.04, married:0.62, divorced:0.15, widowed:0.19},
+  60: {single:0.03, married:0.55, divorced:0.12, widowed:0.30},
+  65: {single:0.03, married:0.45, divorced:0.10, widowed:0.42},
+  70: {single:0.02, married:0.35, divorced:0.08, widowed:0.55},
+  75: {single:0.02, married:0.25, divorced:0.05, widowed:0.68},
+  80: {single:0.02, married:0.15, divorced:0.03, widowed:0.80},
+};
+
+// probability of having children by age bin
+const CHILDREN_BY_AGE = {
+  0:0, 5:0, 10:0, 15:0.03, 20:0.25, 25:0.55, 30:0.75, 35:0.85, 40:0.88,
+  45:0.88, 50:0.87, 55:0.86, 60:0.85, 65:0.85, 70:0.85, 75:0.85, 80:0.85
+};
+
+// education distribution by age bin: {secondary, vocational, higher}
+const EDUCATION_BY_AGE = {
+  0:  {secondary:1,    vocational:0,    higher:0},
+  5:  {secondary:1,    vocational:0,    higher:0},
+  10: {secondary:1,    vocational:0,    higher:0},
+  15: {secondary:0.83, vocational:0.15, higher:0.02},
+  20: {secondary:0.45, vocational:0.30, higher:0.25},
+  25: {secondary:0.35, vocational:0.30, higher:0.35},
+  30: {secondary:0.35, vocational:0.30, higher:0.35},
+  35: {secondary:0.38, vocational:0.32, higher:0.30},
+  40: {secondary:0.38, vocational:0.32, higher:0.30},
+  45: {secondary:0.42, vocational:0.33, higher:0.25},
+  50: {secondary:0.42, vocational:0.33, higher:0.25},
+  55: {secondary:0.45, vocational:0.33, higher:0.22},
+  60: {secondary:0.45, vocational:0.33, higher:0.22},
+  65: {secondary:0.52, vocational:0.30, higher:0.18},
+  70: {secondary:0.52, vocational:0.30, higher:0.18},
+  75: {secondary:0.52, vocational:0.30, higher:0.18},
+  80: {secondary:0.52, vocational:0.30, higher:0.18},
+};
+
+// income distribution conditional on employment: {low, medium, high}
+const INCOME_BY_EMPLOYMENT = {
+  employed:   { low:0.25, medium:0.50, high:0.25 },
+  unemployed: { low:0.65, medium:0.30, high:0.05 },
+};
+
+function ageBinKey(bin){ return bin.min; }
+
+function lookupByAge(table, min){
+  // tables are keyed by bin.min (0,5,10,...80); find matching key
+  const keys = Object.keys(table).map(Number).sort((a,b)=>a-b);
+  let k = keys[0];
+  for (const key of keys) if (min >= key) k = key;
+  return table[k];
+}
+
+function populateCities(){
+  const sel = document.getElementById('f-city');
+  CITIES.forEach(c=>{
+    const opt = document.createElement('option');
+    opt.value = c.name; opt.textContent = `${c.name} (~${c.pop.toLocaleString('ru-RU')})`;
+    sel.appendChild(opt);
+  });
+}
+populateCities();
+
+function calculate(){
+  const cityName = document.getElementById('f-city').value;
+  const city = CITIES.find(c=>c.name===cityName);
+  const ageMin = Math.max(0, parseInt(document.getElementById('f-age-min').value) || 0);
+  const ageMax = Math.min(100, parseInt(document.getElementById('f-age-max').value) || 100);
+  const gender = document.getElementById('f-gender').value;
+  const employment = document.getElementById('f-employment').value;
+  const marital = document.getElementById('f-marital').value;
+  const children = document.getElementById('f-children').value;
+  const education = document.getElementById('f-education').value;
+  const income = document.getElementById('f-income').value;
+
+  let total = 0;
+  let totalMale = 0, totalFemale = 0;
+
+  AGE_BINS.forEach(bin=>{
+    // overlap fraction of this 5-year bin with the requested [ageMin, ageMax] range
+    const binWidth = bin.max - bin.min + 1;
+    const overlapStart = Math.max(bin.min, ageMin);
+    const overlapEnd = Math.min(bin.max, ageMax);
+    const overlap = Math.max(0, overlapEnd - overlapStart + 1);
+    if (overlap <= 0) return;
+    const overlapFrac = overlap / binWidth;
+
+    const binPop = city.pop * (bin.share/100) * overlapFrac;
+    const malePop = binPop * bin.maleFrac;
+    const femalePop = binPop * (1 - bin.maleFrac);
+
+    const empRate = lookupByAge(EMPLOYMENT_BY_AGE, bin.min);
+    const maritalDist = lookupByAge(MARITAL_BY_AGE, bin.min);
+    const childProb = lookupByAge(CHILDREN_BY_AGE, bin.min);
+    const eduDist = lookupByAge(EDUCATION_BY_AGE, bin.min);
+
+    [['male', malePop, empRate*1.05], ['female', femalePop, empRate*0.95]].forEach(([g, pop, empAdj])=>{
+      if (gender !== 'all' && gender !== g) return;
+      let p = pop;
+
+      if (employment === 'employed') p *= Math.min(1, empAdj);
+      else if (employment === 'unemployed') p *= (1 - Math.min(1, empAdj));
+
+      if (marital !== 'all') p *= (maritalDist[marital] || 0);
+      if (children === 'yes') p *= childProb;
+      else if (children === 'no') p *= (1 - childProb);
+      if (education !== 'all') p *= (eduDist[education] || 0);
+
+      if (income !== 'all') {
+        // weight income distribution by employment likelihood when employment filter isn't fixed
+        let incP;
+        if (employment === 'employed') incP = INCOME_BY_EMPLOYMENT.employed[income];
+        else if (employment === 'unemployed') incP = INCOME_BY_EMPLOYMENT.unemployed[income];
+        else {
+          const e = Math.min(1, empAdj);
+          incP = e*INCOME_BY_EMPLOYMENT.employed[income] + (1-e)*INCOME_BY_EMPLOYMENT.unemployed[income];
+        }
+        p *= incP;
+      }
+
+      total += p;
+      if (g === 'male') totalMale += p; else totalFemale += p;
+    });
+  });
+
+  const rounded = Math.round(total);
+  document.getElementById('res-num').textContent = rounded.toLocaleString('ru-RU');
+  document.getElementById('res-lbl').textContent = `оценка по заданным параметрам в городе ${city.name}`;
+  document.getElementById('res-pct').textContent = `≈ ${(total/city.pop*100).toFixed(2)}% от населения города (~${city.pop.toLocaleString('ru-RU')})`;
+
+  const bd = document.getElementById('res-breakdown');
+  bd.innerHTML = '';
+  const cards = [
+    ['Город', `${city.name}`],
+    ['Возраст', `${ageMin}–${ageMax}`],
+    ['Мужчины', Math.round(totalMale).toLocaleString('ru-RU')],
+    ['Женщины', Math.round(totalFemale).toLocaleString('ru-RU')],
+  ];
+  cards.forEach(([k,v])=>{
+    const div = document.createElement('div');
+    div.className = 'bd-card';
+    div.innerHTML = `<div class="k">${k}</div><div class="v">${v}</div>`;
+    bd.appendChild(div);
+  });
+
+  document.getElementById('result').classList.add('visible');
+}
+</script>
+
+</body>
+</html>
