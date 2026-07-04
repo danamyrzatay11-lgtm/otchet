@@ -33,6 +33,8 @@
     --c-vitamins:#fb923c;
     --c-spf:#facc15;
     --c-selfcare:#f472b6;
+    --c-waist:#34d399;
+    --c-hips:#fb7185;
     --c-beauty:#f472b6;
     --c-health:#60a5fa;
     --red:#ef4444;
@@ -238,6 +240,22 @@
       </div>
 
       <div class="card">
+        <h2>Замеры тела</h2>
+        <div style="display:flex;gap:10px;">
+          <div class="field" style="flex:1;margin-bottom:10px;">
+            <label>Талия, см</label>
+            <input type="number" step="0.5" id="waistInput" placeholder="70">
+          </div>
+          <div class="field" style="flex:1;margin-bottom:10px;">
+            <label>Бёдра, см</label>
+            <input type="number" step="0.5" id="hipsInput" placeholder="95">
+          </div>
+        </div>
+        <button class="btn primary" id="saveMeasureBtn" style="width:100%;">Сохранить замеры сегодня</button>
+        <div id="measureChartSlot" style="margin-top:14px;"></div>
+      </div>
+
+      <div class="card">
         <h2>Тренировка + кардио · 7 дней (мин)</h2>
         <div id="barChartSlot"></div>
       </div>
@@ -362,6 +380,23 @@
             <p><b>Возможные причины проблем:</b> недостаточная гигиена, красящие напитки, скрежетание зубов (бруксизм), чувствительность эмали.</p>
             <p><b>К кому:</b> стоматолог-гигиенист — профессиональная чистка (уже в «Уходе», каждые 180 дней).</p>
             <p><b>Домашний уход:</b> чистка зубов 2 раза в день по 2 минуты, зубная нить или ирригатор ежедневно, ополаскиватель без спирта, ограничить кофе/красное вино/курение, при скрежетании — капа на ночь.</p>
+          </div>
+        </details>
+        <details class="info-section">
+          <summary>Уход за кожей лица</summary>
+          <div class="body">
+            <p><b>Утро:</b> мягкое очищение, увлажняющий крем, при необходимости — антиоксидантная сыворотка (витамин C). SPF — уже отдельная привычка на вкладке «Сегодня».</p>
+            <p><b>Вечер:</b> снятие макияжа / двойное очищение, увлажняющий крем; активный уход (ретинол или кислоты) — 2–3 раза в неделю, не совмещать несколько активов за один вечер.</p>
+            <p><b>К кому:</b> косметолог — подберёт активы под тип кожи (уже в «Уходе», каждые 30 дней).</p>
+            <p>Ретинол и кислоты вводить постепенно, начиная с низкой концентрации; при их использовании SPF днём обязателен.</p>
+          </div>
+        </details>
+        <details class="info-section">
+          <summary>Иммунитет и сезонное здоровье</summary>
+          <div class="body">
+            <p><b>Возможные факторы риска (не диагноз):</b> дефицит витамина D, недосып, хронический стресс, несбалансированное питание.</p>
+            <p><b>Анализы:</b> витамин D, общий анализ крови, ферритин — можно совместить с плановым осмотром (уже в «Уходе»).</p>
+            <p><b>Домашний уход:</b> достаточный сон (уже трекается на вкладке «Сегодня»), гигиена рук, проветривание помещений, сезонная поддержка витамином D осенью-зимой по согласованию с врачом, постепенное закаливание (контрастный душ).</p>
           </div>
         </details>
       </div>
@@ -878,8 +913,73 @@
     document.getElementById('statWater').textContent = waterN ? (waterSum/waterN).toFixed(1) : '—';
 
     renderWeightChart();
+    renderMeasureCard();
     renderBarChart(days);
   }
+
+  function renderMeasureCard(){
+    var today = todayStr();
+    var entry = getEntry(today);
+    document.getElementById('waistInput').value = (entry.waist && entry.waist.val > 0) ? entry.waist.val : '';
+    document.getElementById('hipsInput').value = (entry.hips && entry.hips.val > 0) ? entry.hips.val : '';
+    renderMeasureChart();
+  }
+
+  function renderMeasureChart(){
+    var slot = document.getElementById('measureChartSlot');
+    var days30 = [];
+    for(var i=29;i>=0;i--){ days30.push(addDays(todayStr(), -i)); }
+    function seriesPoints(key){
+      var pts = [];
+      days30.forEach(function(d, idx){
+        var entry = logs[d];
+        if(entry && entry[key] && entry[key].val > 0){ pts.push({idx:idx, val:entry[key].val}); }
+      });
+      return pts;
+    }
+    var waistPts = seriesPoints('waist'), hipsPts = seriesPoints('hips');
+    if(waistPts.length < 2 && hipsPts.length < 2){
+      slot.innerHTML = '<div class="empty-note">Добавьте больше замеров, чтобы увидеть график.</div>';
+      return;
+    }
+    var w = 480, h = 160, padX = 10, padY = 16;
+    var allVals = waistPts.concat(hipsPts).map(function(p){return p.val;});
+    var min = Math.min.apply(null, allVals), max = Math.max.apply(null, allVals);
+    if(min===max){ min -= 1; max += 1; }
+    function xy(idx, val){
+      var x = padX + (idx/29) * (w - padX*2);
+      var y = padY + (1 - (val - min)/(max-min)) * (h - padY*2);
+      return [x,y];
+    }
+    function buildPath(pts){
+      return pts.map(function(p,i){ var xy_ = xy(p.idx, p.val); return (i===0?'M':'L')+xy_[0].toFixed(1)+','+xy_[1].toFixed(1); }).join(' ');
+    }
+    function buildCircles(pts, color){
+      return pts.map(function(p){ var xy_ = xy(p.idx, p.val); return '<circle cx="'+xy_[0].toFixed(1)+'" cy="'+xy_[1].toFixed(1)+'" r="2.5" fill="'+color+'"/>'; }).join('');
+    }
+    var svg = '<svg class="chart" viewBox="0 0 '+w+' '+h+'">';
+    if(waistPts.length >= 2){ svg += '<path d="'+buildPath(waistPts)+'" fill="none" stroke="var(--c-waist)" stroke-width="2"/>'+buildCircles(waistPts, 'var(--c-waist)'); }
+    if(hipsPts.length >= 2){ svg += '<path d="'+buildPath(hipsPts)+'" fill="none" stroke="var(--c-hips)" stroke-width="2"/>'+buildCircles(hipsPts, 'var(--c-hips)'); }
+    svg += '<text x="'+padX+'" y="'+(h-2)+'" fill="var(--chalk-faint)" font-size="9" font-family="JetBrains Mono">'+min.toFixed(1)+' см</text>'+
+      '<text x="'+(w-padX)+'" y="'+(h-2)+'" fill="var(--chalk-faint)" font-size="9" font-family="JetBrains Mono" text-anchor="end">'+max.toFixed(1)+' см</text>'+
+    '</svg>'+
+    '<div style="display:flex;gap:14px;margin-top:8px;font-size:11px;color:var(--chalk-dim);">'+
+      '<span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--c-waist);margin-right:5px;"></span>Талия</span>'+
+      '<span><span style="display:inline-block;width:8px;height:8px;border-radius:2px;background:var(--c-hips);margin-right:5px;"></span>Бёдра</span>'+
+    '</div>';
+    slot.innerHTML = svg;
+  }
+
+  document.getElementById('saveMeasureBtn').addEventListener('click', function(){
+    var w = parseFloat(document.getElementById('waistInput').value);
+    var h = parseFloat(document.getElementById('hipsInput').value);
+    if(isNaN(w) && isNaN(h)){ return; }
+    var entry = getEntry(todayStr());
+    if(!isNaN(w)) entry.waist = {val:w};
+    if(!isNaN(h)) entry.hips = {val:h};
+    persistLogs();
+    renderMeasureChart();
+  });
 
   function renderWeightChart(){
     var slot = document.getElementById('weightChartSlot');
