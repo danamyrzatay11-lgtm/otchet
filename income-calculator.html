@@ -199,6 +199,17 @@
     <span class="pill p-blue">★ КазМунайГаз = 100 000 ₸ всегда</span>
   </div>
 
+  <div style="display:flex;gap:12px;margin-bottom:14px;flex-wrap:wrap;">
+    <div style="background:#e9f7ef;border:1.5px solid #27ae60;border-radius:12px;padding:12px 20px;flex:1;min-width:200px;">
+      <div style="font-size:0.72rem;color:#27ae60;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;">✅ Июнь 2026 — закрыт</div>
+      <div style="font-size:1.4rem;font-weight:800;color:#1a7a40;margin-top:4px;">22 100 000 ₸</div>
+    </div>
+    <div style="background:#ebf5fb;border:1.5px solid #2980b9;border-radius:12px;padding:12px 20px;flex:1;min-width:200px;">
+      <div style="font-size:0.72rem;color:#2980b9;font-weight:700;text-transform:uppercase;letter-spacing:0.05em;">📅 Июль 2026 — в процессе</div>
+      <div style="font-size:1.4rem;font-weight:800;color:#1a5276;margin-top:4px;" id="july-total">—</div>
+    </div>
+  </div>
+
   <div class="sec-title">Сессии — нажмите на строку, чтобы открыть список участников</div>
 
   <table class="sessions" id="sessions-table">
@@ -771,7 +782,7 @@ function render() {
   const tbody = document.getElementById('tbody');
   tbody.innerHTML = '';
 
-  let totalPax = 0, totalIncome = 0;
+  let totalPax = 0, totalIncome = 0, julyIncome = 0;
 
   sessions.forEach(s => {
     const n      = s.participants.length;
@@ -779,6 +790,7 @@ function render() {
     const rate   = getRate(n);
     totalPax    += n;
     totalIncome += income;
+    if (s.date.startsWith('2026-07')) julyIncome += income;
 
     const isOpen = openId === s.id;
 
@@ -997,6 +1009,8 @@ function renderTotals() {
   const g = fmt(totalIncome);
   document.getElementById('grand-total').textContent = g;
   document.getElementById('grand-total-header').textContent = g;
+  const julyEl = document.getElementById('july-total');
+  if (julyEl) julyEl.textContent = fmt(sessions.filter(s=>s.date.startsWith('2026-07')).reduce((a,s)=>a+sessionIncome(s),0));
 }
 
 function delParticipant(e, sid, idx) {
