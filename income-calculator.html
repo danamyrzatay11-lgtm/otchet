@@ -52,6 +52,7 @@
   .date-cell { font-weight:700; white-space:nowrap; }
   .week-tag { display:inline-block; padding:2px 7px; border-radius:10px; font-size:0.68rem; font-weight:700; margin-left:5px; }
   .w1{background:#e9d8fd;color:#6b46c1;} .w2{background:#bee3f8;color:#2b6cb0;} .w3{background:#c6f6d5;color:#276749;}
+  .w4{background:#fefcbf;color:#744210;} .w5{background:#fed7d7;color:#9b2c2c;} .w6{background:#e2e8f0;color:#2d3748;}
   .companies-cell { color:#4a5568; }
   .tag { display:inline-block; border-radius:6px; font-size:0.7rem; padding:1px 6px; margin:1px; }
   .tag-kmg  { background:#ebf8ff; color:#2b6cb0; border:1px solid #90cdf4; font-weight:700; }
@@ -273,6 +274,9 @@ const WEEKS = [
   {label:'Нед.1', cls:'w1', from:'2026-06-08', to:'2026-06-14'},
   {label:'Нед.2', cls:'w2', from:'2026-06-15', to:'2026-06-21'},
   {label:'Нед.3', cls:'w3', from:'2026-06-22', to:'2026-06-28'},
+  {label:'Нед.4', cls:'w4', from:'2026-06-29', to:'2026-07-05'},
+  {label:'Нед.5', cls:'w5', from:'2026-07-06', to:'2026-07-12'},
+  {label:'Нед.6', cls:'w6', from:'2026-07-13', to:'2026-07-19'},
 ];
 function weekTag(d) {
   for (const w of WEEKS) if (d >= w.from && d <= w.to)
@@ -559,6 +563,58 @@ let sessions = [
       {name:'Тимофеев Артем Юрьевич',             company:'АО «Казахтелеком»', kmg:false, role:'ОДС'},
       {name:'Токтаубай Дильбара Накифкызы',       company:'АО «Казахтелеком»', kmg:false, role:'ОДС'},
       {name:'Чингысбаев Сеилхан Амирханович',     company:'АО «Казахтелеком»', kmg:false, role:'ОДС'},
+    ]
+  },
+  { id:25, date:'2026-07-08', time:'14:00', companies:['КазМунайГаз','КМГ Инжиниринг'],
+    participants:[
+      {name:'Шамсутдинов Ильдар Тагирович',       company:'ТОО «КазМунайГаз-Аэро»',    kmg:true,  role:'Генеральный директор'},
+      {name:'Дарбаев Армад Амангельдиевич',        company:'ТОО «Ak Su KMG»',            kmg:true,  role:'Заместитель генерального директора по развитию бизнеса'},
+      {name:'Исказиев Курмангазы Орынгазиевич',   company:'АО НК «КазМунайГаз»',        kmg:true,  role:'Первый Заместитель Председателя Правления'},
+      {name:'Джумаканова Карлыгаш Абайкановна',   company:'АО НК «КазМунайГаз»',        kmg:true,  role:'Заместитель Председателя Правления'},
+      {name:'Утеев Рахим Нагангалиулы',           company:'ТОО «КМГ Инжиниринг»',       kmg:true,  role:'Генеральный директор'},
+    ]
+  },
+  { id:24, date:'2026-07-08', time:'09:00', fixedRate:100000, companies:['Казатомпром','KAP Technology','QazaqGaz'],
+    participants:[
+      {name:'Нурмаков Канат Коныспаевич',       company:'АО «НАК «Казатомпром»',         kmg:false, role:'Главный эксперт Департамента IT'},
+      {name:'Казбекулы Куаныш',                 company:'АО «НАК «Казатомпром»',         kmg:false, role:'Главный менеджер Департамента IT'},
+      {name:'Цой Дмитрий Александрович',        company:'АО «НАК «Казатомпром»',         kmg:false, role:'Директор департамента защиты информации'},
+      {name:'Камышева Лейла Мухтаровна',        company:'АО «НАК «Казатомпром»',         kmg:false, role:'Главный менеджер департамента защиты информации'},
+      {name:'Вебер Снежана Владимировна',       company:'ТОО «KAP Technology»',          kmg:false, role:'Главный инженер Департамента разработки информационных систем и сервисов'},
+      {name:'Талғатұлы Алдиар',                 company:'ТОО «KAP Technology»',          kmg:false, role:'Инженер Департамента разработки информационных систем и сервисов'},
+      {name:'Таттимбетов Еркебулан Ерланович',  company:'ТОО «KAP Technology»',          kmg:false, role:'Главный инженер Департамента разработки информационных систем и сервисов'},
+      {name:'Бостыбаев Арман Нурлубекович',     company:'ТОО «KAP Technology»',          kmg:false, role:'Главный проектный менеджер Департамента искусственного интеллекта'},
+      {name:'Қошанов Абылайхан Қайратұлы',      company:'ТОО «KAP Technology»',          kmg:false, role:'Менеджер Департамента цифрового развития и связи'},
+      {name:'Мубараков Олжас Даниярович',       company:'ТОО «KAP Technology»',          kmg:false, role:'Менеджер Департамента развития производств'},
+      {name:'Шоткин Рауан Канатович',           company:'ТОО «QazaqGaz Научно-технический центр»', kmg:false, role:'Руководитель Службы ИТ'},
+    ]
+  },
+  { id:23, date:'2026-07-08', time:'09:00', companies:['Казахтелеком'],
+    participants:[
+      {name:'Абдрашова Әсел Максұткызы',          company:'АО «Казахтелеком»', kmg:false, role:'ДЦБ'},
+      {name:'Агеев Никита Андреевич',              company:'АО «Казахтелеком»', kmg:false, role:'ДЦБ'},
+      {name:'Аманкелди Айдар Дидарұлы',           company:'АО «Казахтелеком»', kmg:false, role:'ОДС'},
+      {name:'Аюпова Галия Шамильевна',            company:'АО «Казахтелеком»', kmg:false, role:'ДКБ'},
+      {name:'Байжасарова Амина',                  company:'АО «Казахтелеком»', kmg:false, role:'ДЦБ'},
+      {name:'Бақдәулетұлы Аян',                   company:'АО «Казахтелеком»', kmg:false, role:'ДЦБ'},
+      {name:'Досбосын Жандос Дүйсенұлы',          company:'АО «Казахтелеком»', kmg:false, role:'ОДС'},
+      {name:'Дүйсенбай Молдір',                   company:'АО «Казахтелеком»', kmg:false, role:'ДКБ'},
+      {name:'Ембергенов Алмат Бауржанұлы',        company:'АО «Казахтелеком»', kmg:false, role:'КУ'},
+      {name:'Есімжанов Іліяс Таласұлы',           company:'АО «Казахтелеком»', kmg:false, role:'КУ'},
+      {name:'Жукенова Айгерим Турганбаевна',      company:'АО «Казахтелеком»', kmg:false, role:'ОДС'},
+      {name:'Зинелов Әділет Маратұлы',            company:'АО «Казахтелеком»', kmg:false, role:'ДКБ'},
+      {name:'Мазанов Тимирлан Асхатұлы',          company:'АО «Казахтелеком»', kmg:false, role:'ОДС'},
+      {name:'Макашова Толқын Муратовна',           company:'АО «Казахтелеком»', kmg:false, role:'ОДС'},
+      {name:'Момышов Данияр Болатұлы',            company:'АО «Казахтелеком»', kmg:false, role:'ОДС'},
+      {name:'Мусрепова Айман Аскаровна',          company:'АО «Казахтелеком»', kmg:false, role:'ОДС'},
+      {name:'Новикова Елена Михайловна',          company:'АО «Казахтелеком»', kmg:false, role:'ОДС'},
+      {name:'Нурбек Нурмухаммед Есенгелдіұлы',   company:'АО «Казахтелеком»', kmg:false, role:'ОДС'},
+      {name:'Оспан Айбар Өмірханұлы',             company:'АО «Казахтелеком»', kmg:false, role:'ОДС'},
+      {name:'Салихбаева Алтынай Кувандыковна',    company:'АО «Казахтелеком»', kmg:false, role:'СФ'},
+      {name:'Соколовский Захар Олегович',         company:'АО «Казахтелеком»', kmg:false, role:'КУ'},
+      {name:'Тулубаев Аяз Берикович',             company:'АО «Казахтелеком»', kmg:false, role:'ОДС'},
+      {name:'Уразбаев Ануар Талгатұлы',           company:'АО «Казахтелеком»', kmg:false, role:'ДКБ'},
+      {name:'Абиев Куаным Маратович',             company:'АО «Казахтелеком»', kmg:false, role:'ОДС'},
     ]
   },
   { id:20, date:'2026-07-07', companies:['КТЖ'],
