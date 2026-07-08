@@ -845,6 +845,7 @@ function render() {
   const g = fmt(totalIncome);
   document.getElementById('grand-total').textContent = g;
   document.getElementById('grand-total-header').textContent = g;
+  document.getElementById('july-total').textContent = fmt(julyIncome);
 }
 
 function buildPanel(s) {
